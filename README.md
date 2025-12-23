@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LofiLoop 🎵
 
-## Getting Started
+A browser-based loop workstation for building chill lofi beats. Built with Next.js, TypeScript, and the Web Audio API.
 
-First, run the development server:
+![LofiLoop](https://img.shields.io/badge/Next.js-15-black?style=flat-square) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square) ![Web Audio](https://img.shields.io/badge/Web%20Audio-API-green?style=flat-square)
+
+## ✨ Features
+
+### Step Sequencer
+- **4 Drum Tracks**: Kick, Snare, Hi-Hat, Clap
+- **16-Step Grid**: One bar of 4/4 time
+- **Click-Drag Painting**: Draw patterns quickly
+- **Right-Click Clear**: Erase steps easily
+- **Mute/Solo**: Per-track controls
+- **A/B Patterns**: Switch between two variations
+
+### Synthesizer
+- **Subtractive Synth**: Monophonic bass/lead
+- **Oscillators**: Sine, Triangle, Sawtooth, Square with detune
+- **ADSR Envelope**: Attack, Decay, Sustain, Release
+- **Low-Pass Filter**: Cutoff & Resonance controls
+- **Step Notes**: Pick notes per step from the grid
+
+### Audio Engine
+- **Lookahead Scheduler**: Rock-solid timing (no jitter)
+- **Synthesized Drums**: All sounds generated in real-time
+- **BPM Control**: 60-180 BPM
+- **Swing**: 0-60% for groove
+
+### Project Management
+- **Save/Load**: LocalStorage persistence
+- **Export/Import**: JSON project files
+- **Presets**: Lofi Chill, House, Trap, D&B drums + Warm Bass, Pluck, Pad synths
+
+## 🚀 Getting Started
 
 ```bash
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Build for production
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to start making beats!
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🎛️ How to Use
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Click Play** to start the sequencer
+2. **Paint steps** on the drum grid (click-drag to draw)
+3. **Add notes** by clicking synth steps and selecting a note
+4. **Shape the sound** with the synth knobs on the right
+5. **Adjust BPM & Swing** for different vibes
+6. **Save your project** to keep your work
 
-## Learn More
+## 🏗️ Architecture
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+├── app/                    # Next.js app router
+├── components/             # React components
+│   ├── LoopWorkstation.tsx # Main orchestrator
+│   ├── StepGrid.tsx        # 16-step sequencer grid
+│   ├── SynthPanel.tsx      # Synth controls
+│   ├── TransportBar.tsx    # Play/Stop, BPM, etc.
+│   ├── PresetBar.tsx       # Presets & save/load
+│   ├── LoadModal.tsx       # Project loader
+│   └── Knob.tsx            # Rotary knob component
+└── lib/
+    ├── audio/              # Web Audio engine
+    │   ├── audioContext.ts # AudioContext singleton
+    │   ├── scheduler.ts    # Lookahead scheduler
+    │   ├── drumSynth.ts    # Synthesized drums
+    │   └── synth.ts        # Subtractive synth
+    ├── presets/            # Drum & synth presets
+    └── storage/            # LocalStorage utilities
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🎨 Tech Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **Styling**: Tailwind CSS with custom lofi design system
+- **Audio**: Web Audio API with lookahead scheduling
+- **Storage**: LocalStorage for project persistence
 
-## Deploy on Vercel
+## 🔧 Technical Highlights
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Tight Scheduler**: Uses lookahead scheduling (~25ms timer, 100ms lookahead) for consistent timing
+- **Synth Drums**: Kick (sine pitch drop), Snare (noise + tone), Hat (filtered noise), Clap (layered bursts)
+- **Subtractive Synth**: Dual detuned oscillators → Low-pass filter → ADSR envelope
+- **No Samples**: All sounds synthesized in real-time
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📝 License
+
+MIT
