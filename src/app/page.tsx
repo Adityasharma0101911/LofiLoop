@@ -1,10 +1,10 @@
 import { ThemeProvider } from "@/components/ThemeProvider";
-import LoopWorkstation from "@/components/LoopWorkstation";
+import BeatMaker from "@/components/BeatMaker";
 
 export default function Home() {
   return (
     <ThemeProvider>
-      <LoopWorkstation />
+      <BeatMaker />
     </ThemeProvider>
   );
 }
