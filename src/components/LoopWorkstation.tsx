@@ -9,6 +9,8 @@ import LoadModal from '@/components/LoadModal';
 import Visualizer from '@/components/Visualizer';
 import EffectsRack from '@/components/EffectsRack';
 import GeneratorPanel from '@/components/GeneratorPanel';
+import ExportModal from '@/components/ExportModal';
+import LofiBackground from '@/components/LofiBackground';
 import { ThemeSelector } from '@/components/ThemeProvider';
 import { useKeyboardShortcuts, KeyboardShortcutsHelp } from '@/components/KeyboardShortcuts';
 import {
@@ -25,7 +27,7 @@ import {
 import { setMasterVolume, resumeAudioContext } from '@/lib/audio/audioContext';
 import { getAnalyser } from '@/lib/audio/visualizer';
 import { initializeEffects, updateEffects, EffectsParams, defaultEffectsParams } from '@/lib/audio/effects';
-import { startRecording, stopRecording, isRecording, exportToMidi, encodeProjectToUrl } from '@/lib/audio/exporter';
+import { startRecording, stopRecording, exportToMidi, encodeProjectToUrl } from '@/lib/audio/exporter';
 import { defaultSynthParams, SynthParams, getAllNotes } from '@/lib/audio/synth';
 import { DrumType } from '@/lib/audio/drumSynth';
 import { drumPresets, getDrumPreset } from '@/lib/presets/drumPresets';
@@ -76,7 +78,9 @@ export default function LoopWorkstation() {
     // Project state
     const [projectName, setProjectName] = useState('Untitled Loop');
     const [showLoadModal, setShowLoadModal] = useState(false);
+    const [showExportModal, setShowExportModal] = useState(false);
     const [showShortcuts, setShowShortcuts] = useState(false);
+    const [activeTab, setActiveTab] = useState<'sequencer' | 'effects' | 'generator'>('sequencer');
 
     // Set up step change callback
     useEffect(() => {
@@ -89,7 +93,7 @@ export default function LoopWorkstation() {
     useEffect(() => {
         if (isPlaying) {
             initializeEffects();
-            getAnalyser(); // Initialize visualizer
+            getAnalyser();
         }
     }, [isPlaying]);
 
@@ -318,7 +322,6 @@ export default function LoopWorkstation() {
         if (recording) {
             const blob = await stopRecording();
             setRecording(false);
-            // Download the recording
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -383,30 +386,44 @@ export default function LoopWorkstation() {
     });
 
     return (
-        <div className="min-h-screen p-4" style={{ background: 'var(--bg-primary)' }}>
-            {/* Header */}
-            <header className="mb-4 flex items-center justify-between">
-                <div>
-                    <h1
-                        className="text-3xl font-bold tracking-tight"
-                        style={{
-                            background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                        }}
-                    >
-                        LofiLoop
-                    </h1>
-                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                        V2 • Chill beats • Step sequencer • Synth shaping
-                    </p>
+        <div className="h-screen flex flex-col overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
+            {/* Animated background */}
+            <LofiBackground scene="particles" intensity={0.3} />
+
+            {/* Header - fixed */}
+            <header className="relative z-10 px-6 py-3 flex items-center justify-between border-b" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
+                <div className="flex items-center gap-6">
+                    <div>
+                        <h1
+                            className="text-2xl font-bold tracking-tight"
+                            style={{
+                                background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%)',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                            }}
+                        >
+                            LofiLoop Pro
+                        </h1>
+                        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                            Professional Beat Maker
+                        </p>
+                    </div>
+
+                    {/* Project name */}
+                    <input
+                        type="text"
+                        value={projectName}
+                        onChange={(e) => setProjectName(e.target.value)}
+                        className="bg-transparent border-b-2 px-2 py-1 text-lg font-medium focus:outline-none"
+                        style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-primary)', minWidth: '200px' }}
+                    />
                 </div>
 
                 <div className="flex items-center gap-4">
                     <ThemeSelector />
                     <button
                         onClick={() => setShowShortcuts(!showShortcuts)}
-                        className="lofi-button text-sm"
+                        className="lofi-button text-sm px-3 py-2"
                         title="Keyboard Shortcuts"
                     >
                         ⌨️
@@ -414,100 +431,234 @@ export default function LoopWorkstation() {
                 </div>
             </header>
 
-            {/* Visualizer */}
-            <div className="mb-4">
-                <Visualizer isPlaying={isPlaying} mode="both" height={60} />
-            </div>
+            {/* Main content area */}
+            <div className="flex-1 flex overflow-hidden relative z-10">
+                {/* Left sidebar - Tabs */}
+                <aside className="w-16 flex flex-col items-center py-4 gap-2 border-r" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
+                    <button
+                        onClick={() => setActiveTab('sequencer')}
+                        className={`w-12 h-12 rounded-lg flex items-center justify-center text-xl transition-all ${activeTab === 'sequencer' ? 'ring-2 ring-[#e94560]' : ''}`}
+                        style={{
+                            background: activeTab === 'sequencer' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                        }}
+                        title="Sequencer"
+                    >
+                        🎹
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('effects')}
+                        className={`w-12 h-12 rounded-lg flex items-center justify-center text-xl transition-all ${activeTab === 'effects' ? 'ring-2 ring-[#e94560]' : ''}`}
+                        style={{
+                            background: activeTab === 'effects' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                        }}
+                        title="Effects"
+                    >
+                        🎛️
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('generator')}
+                        className={`w-12 h-12 rounded-lg flex items-center justify-center text-xl transition-all ${activeTab === 'generator' ? 'ring-2 ring-[#e94560]' : ''}`}
+                        style={{
+                            background: activeTab === 'generator' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                        }}
+                        title="Generator"
+                    >
+                        🎲
+                    </button>
+                </aside>
 
-            {/* Transport bar */}
-            <div className="mb-4">
-                <TransportBar
-                    isPlaying={isPlaying}
-                    bpm={bpm}
-                    swing={swing}
-                    masterVolume={masterVolume}
-                    currentPattern={currentPattern}
-                    onPlay={handlePlay}
-                    onStop={handleStop}
-                    onBpmChange={setBpm}
-                    onSwingChange={setSwing}
-                    onMasterVolumeChange={handleMasterVolumeChange}
-                    onPatternChange={setCurrentPattern}
-                />
-            </div>
+                {/* Center content */}
+                <main className="flex-1 flex flex-col overflow-hidden p-4">
+                    {/* Visualizer */}
+                    <div className="mb-4">
+                        <Visualizer isPlaying={isPlaying} mode="both" height={80} />
+                    </div>
 
-            {/* Main content */}
-            <div className="flex gap-4 mb-4">
-                {/* Left column: Step grid */}
-                <div className="flex-1">
-                    <StepGrid
-                        drumPatterns={drumPatterns[currentPattern]}
-                        synthNotes={synthPatterns[currentPattern].notes}
-                        currentStep={currentStep}
-                        onDrumToggle={handleDrumToggle}
-                        onSynthNoteChange={handleSynthNoteChange}
-                        trackSettings={trackSettings}
-                        onTrackSettingChange={handleTrackSettingChange}
-                        availableNotes={getAllNotes()}
-                    />
-                </div>
+                    {/* Transport bar */}
+                    <div className="mb-4">
+                        <TransportBar
+                            isPlaying={isPlaying}
+                            bpm={bpm}
+                            swing={swing}
+                            masterVolume={masterVolume}
+                            currentPattern={currentPattern}
+                            onPlay={handlePlay}
+                            onStop={handleStop}
+                            onBpmChange={setBpm}
+                            onSwingChange={setSwing}
+                            onMasterVolumeChange={handleMasterVolumeChange}
+                            onPatternChange={setCurrentPattern}
+                        />
+                    </div>
 
-                {/* Right column: Synth + Generator */}
-                <div className="w-72 space-y-4">
-                    <SynthPanel
-                        params={synthParams}
-                        onChange={handleSynthParamsChange}
-                        presets={synthPresets}
-                        onPresetChange={handleSynthPresetChange}
-                        currentPreset={currentSynthPreset}
-                    />
+                    {/* Tab content */}
+                    <div className="flex-1 overflow-auto">
+                        {activeTab === 'sequencer' && (
+                            <div className="flex gap-4">
+                                <div className="flex-1">
+                                    <StepGrid
+                                        drumPatterns={drumPatterns[currentPattern]}
+                                        synthNotes={synthPatterns[currentPattern].notes}
+                                        currentStep={currentStep}
+                                        onDrumToggle={handleDrumToggle}
+                                        onSynthNoteChange={handleSynthNoteChange}
+                                        trackSettings={trackSettings}
+                                        onTrackSettingChange={handleTrackSettingChange}
+                                        availableNotes={getAllNotes()}
+                                    />
+                                </div>
+                                <div className="w-80">
+                                    <SynthPanel
+                                        params={synthParams}
+                                        onChange={handleSynthParamsChange}
+                                        presets={synthPresets}
+                                        onPresetChange={handleSynthPresetChange}
+                                        currentPreset={currentSynthPreset}
+                                    />
+                                </div>
+                            </div>
+                        )}
 
-                    <GeneratorPanel
-                        drumPattern={drumPatterns[currentPattern]}
-                        synthPattern={synthPatterns[currentPattern]}
-                        onDrumPatternChange={handleDrumPatternChange}
-                        onSynthPatternChange={handleSynthPatternChange}
-                    />
-                </div>
-            </div>
+                        {activeTab === 'effects' && (
+                            <EffectsRack params={effectsParams} onChange={setEffectsParams} />
+                        )}
 
-            {/* Effects rack */}
-            <div className="mb-4">
-                <EffectsRack params={effectsParams} onChange={setEffectsParams} />
-            </div>
+                        {activeTab === 'generator' && (
+                            <GeneratorPanel
+                                drumPattern={drumPatterns[currentPattern]}
+                                synthPattern={synthPatterns[currentPattern]}
+                                onDrumPatternChange={handleDrumPatternChange}
+                                onSynthPatternChange={handleSynthPatternChange}
+                            />
+                        )}
+                    </div>
+                </main>
 
-            {/* Preset bar */}
-            <div className="mb-4">
-                <PresetBar
-                    drumPresets={drumPresets}
-                    currentDrumPreset={currentDrumPreset}
-                    onDrumPresetChange={handleDrumPresetChange}
-                    onSave={handleSave}
-                    onLoad={() => setShowLoadModal(true)}
-                    onExport={handleExport}
-                    onImport={handleImport}
-                    projectName={projectName}
-                    onProjectNameChange={setProjectName}
-                />
-            </div>
+                {/* Right sidebar - Actions */}
+                <aside className="w-64 p-4 overflow-y-auto border-l" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)' }}>
+                    <h3 className="text-sm font-semibold mb-4 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+                        Quick Actions
+                    </h3>
 
-            {/* Extra actions bar */}
-            <div className="lofi-panel px-6 py-4 flex items-center justify-center gap-4">
-                <button
-                    onClick={handleRecordToggle}
-                    className={`lofi-button text-sm ${recording ? 'active' : ''}`}
-                >
-                    {recording ? '⏹ Stop Recording' : '🔴 Record'}
-                </button>
-                <button onClick={handleMidiExport} className="lofi-button text-sm">
-                    🎹 Export MIDI
-                </button>
-                <button onClick={handleShareUrl} className="lofi-button text-sm">
-                    🔗 Share URL
-                </button>
-                <button onClick={handleCopyPattern} className="lofi-button text-sm">
-                    📋 Copy to {currentPattern === 'A' ? 'B' : 'A'}
-                </button>
+                    <div className="space-y-3">
+                        {/* Export */}
+                        <button
+                            onClick={() => setShowExportModal(true)}
+                            className="w-full py-3 px-4 rounded-lg text-left flex items-center gap-3 transition-all hover:scale-[1.02]"
+                            style={{ background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', color: 'white' }}
+                        >
+                            <span className="text-xl">📥</span>
+                            <div>
+                                <span className="font-bold">Export Audio</span>
+                                <span className="block text-xs opacity-80">WAV / MP3</span>
+                            </div>
+                        </button>
+
+                        {/* Recording */}
+                        <button
+                            onClick={handleRecordToggle}
+                            className={`w-full py-3 px-4 rounded-lg text-left flex items-center gap-3 transition-all ${recording ? 'animate-pulse' : ''}`}
+                            style={{ background: recording ? '#e94560' : 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
+                        >
+                            <span className="text-xl">{recording ? '⏹' : '🔴'}</span>
+                            <div>
+                                <span className="font-medium">{recording ? 'Stop Recording' : 'Record'}</span>
+                                <span className="block text-xs" style={{ color: 'var(--text-muted)' }}>Real-time capture</span>
+                            </div>
+                        </button>
+
+                        {/* MIDI Export */}
+                        <button
+                            onClick={handleMidiExport}
+                            className="w-full py-3 px-4 rounded-lg text-left flex items-center gap-3 lofi-button"
+                        >
+                            <span className="text-xl">🎹</span>
+                            <div>
+                                <span className="font-medium">Export MIDI</span>
+                                <span className="block text-xs" style={{ color: 'var(--text-muted)' }}>.mid file</span>
+                            </div>
+                        </button>
+
+                        {/* Share URL */}
+                        <button
+                            onClick={handleShareUrl}
+                            className="w-full py-3 px-4 rounded-lg text-left flex items-center gap-3 lofi-button"
+                        >
+                            <span className="text-xl">🔗</span>
+                            <div>
+                                <span className="font-medium">Share Project</span>
+                                <span className="block text-xs" style={{ color: 'var(--text-muted)' }}>Copy URL</span>
+                            </div>
+                        </button>
+
+                        {/* Divider */}
+                        <hr style={{ borderColor: 'var(--border-subtle)' }} />
+
+                        {/* Presets */}
+                        <h4 className="text-xs font-semibold uppercase tracking-wider mt-4 mb-2" style={{ color: 'var(--text-muted)' }}>
+                            Patterns
+                        </h4>
+
+                        <select
+                            value={currentDrumPreset}
+                            onChange={(e) => handleDrumPresetChange(e.target.value)}
+                            className="w-full p-2 rounded-lg text-sm"
+                            style={{ background: 'var(--bg-tertiary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
+                        >
+                            {drumPresets.map((p) => (
+                                <option key={p.name} value={p.name}>{p.name}</option>
+                            ))}
+                        </select>
+
+                        {/* Copy Pattern */}
+                        <button
+                            onClick={handleCopyPattern}
+                            className="w-full py-2 px-4 rounded-lg text-sm lofi-button"
+                        >
+                            📋 Copy {currentPattern} → {currentPattern === 'A' ? 'B' : 'A'}
+                        </button>
+
+                        {/* Divider */}
+                        <hr style={{ borderColor: 'var(--border-subtle)' }} />
+
+                        {/* Save/Load */}
+                        <h4 className="text-xs font-semibold uppercase tracking-wider mt-4 mb-2" style={{ color: 'var(--text-muted)' }}>
+                            Project
+                        </h4>
+
+                        <div className="grid grid-cols-2 gap-2">
+                            <button onClick={handleSave} className="py-2 px-3 rounded-lg text-sm lofi-button">
+                                💾 Save
+                            </button>
+                            <button onClick={() => setShowLoadModal(true)} className="py-2 px-3 rounded-lg text-sm lofi-button">
+                                📂 Load
+                            </button>
+                            <button onClick={handleExport} className="py-2 px-3 rounded-lg text-sm lofi-button">
+                                ↗ Export
+                            </button>
+                            <button onClick={() => document.getElementById('import-input')?.click()} className="py-2 px-3 rounded-lg text-sm lofi-button">
+                                ↙ Import
+                            </button>
+                        </div>
+
+                        <input
+                            id="import-input"
+                            type="file"
+                            accept=".json"
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (evt) => {
+                                        handleImport(evt.target?.result as string);
+                                    };
+                                    reader.readAsText(file);
+                                }
+                            }}
+                            style={{ display: 'none' }}
+                        />
+                    </div>
+                </aside>
             </div>
 
             {/* Load modal */}
@@ -517,20 +668,24 @@ export default function LoopWorkstation() {
                 onLoad={handleLoad}
             />
 
+            {/* Export modal */}
+            <ExportModal
+                isOpen={showExportModal}
+                onClose={() => setShowExportModal(false)}
+                bpm={bpm}
+                drumPattern={drumPatterns[currentPattern]}
+                synthPattern={synthPatterns[currentPattern]}
+                trackSettings={trackSettings}
+                synthParams={synthParams}
+                projectName={projectName}
+            />
+
             {/* Keyboard shortcuts overlay */}
             {showShortcuts && (
-                <div className="fixed top-20 right-4 z-50">
+                <div className="fixed top-20 right-20 z-50">
                     <KeyboardShortcutsHelp />
                 </div>
             )}
-
-            {/* Footer */}
-            <footer className="mt-6 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
-                <p>
-                    Built with Web Audio API • Lookahead scheduler • Effects rack • Pattern generator •{' '}
-                    <span style={{ color: 'var(--synth-color)' }}>♪</span> Make some beats!
-                </p>
-            </footer>
         </div>
     );
 }
