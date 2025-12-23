@@ -5,7 +5,7 @@ import TrackLane from './TrackLane';
 import AIPanel from './AIPanel';
 import Visualizer from './Visualizer';
 import LofiBackground from './LofiBackground';
-import ExportModal from './ExportModal';
+import BeatExportModal from './BeatExportModal';
 import { ThemeSelector } from './ThemeProvider';
 import Knob from './Knob';
 import {
@@ -29,8 +29,6 @@ import {
 import { INSTRUMENTS, getAvailableNotes, getInstrument } from '@/lib/audio/instruments';
 import { resumeAudioContext, setMasterVolume } from '@/lib/audio/audioContext';
 import { getAnalyser } from '@/lib/audio/visualizer';
-import { createEmptyDrumPattern, createEmptySynthPattern, createDefaultTrackSettings } from '@/lib/audio/scheduler';
-import { defaultSynthParams } from '@/lib/audio/synth';
 
 export default function BeatMaker() {
     // Project state
@@ -383,19 +381,12 @@ export default function BeatMaker() {
                 )}
             </div>
 
-            {/* Export modal - adapting existing ExportModal */}
-            {showExportModal && (
-                <ExportModal
-                    isOpen={showExportModal}
-                    onClose={() => setShowExportModal(false)}
-                    bpm={project.bpm}
-                    drumPattern={createEmptyDrumPattern()}
-                    synthPattern={createEmptySynthPattern()}
-                    trackSettings={createDefaultTrackSettings()}
-                    synthParams={defaultSynthParams}
-                    projectName={project.name}
-                />
-            )}
+            {/* Export modal */}
+            <BeatExportModal
+                isOpen={showExportModal}
+                onClose={() => setShowExportModal(false)}
+                project={project}
+            />
 
             {/* Footer */}
             <footer className="relative z-10 px-4 py-2 text-center text-xs border-t" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-subtle)', color: 'var(--text-muted)' }}>
