@@ -4,11 +4,8 @@ import React, { useRef } from 'react';
 
 interface PresetBarProps {
     drumPresets: { name: string }[];
-    synthPresets: { name: string }[];
     currentDrumPreset: string;
-    currentSynthPreset: string;
     onDrumPresetChange: (name: string) => void;
-    onSynthPresetChange: (name: string) => void;
     onSave: () => void;
     onLoad: () => void;
     onExport: () => void;

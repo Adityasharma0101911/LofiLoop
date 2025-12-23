@@ -216,7 +216,7 @@ function createNoiseBuffer(ctx: AudioContext, duration: number): AudioBuffer {
 }
 
 // Helper: Soft clip waveshaper curve
-function makeSoftClipCurve(amount: number): Float32Array {
+function makeSoftClipCurve(amount: number): Float32Array<ArrayBuffer> | null {
     const samples = 44100;
     const curve = new Float32Array(samples);
     const deg = Math.PI / 180;
@@ -226,5 +226,5 @@ function makeSoftClipCurve(amount: number): Float32Array {
         curve[i] = ((3 + amount) * x * 20 * deg) / (Math.PI + amount * Math.abs(x));
     }
 
-    return curve;
+    return curve as Float32Array<ArrayBuffer>;
 }

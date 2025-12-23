@@ -313,11 +313,8 @@ export default function LoopWorkstation() {
             <div className="mt-6">
                 <PresetBar
                     drumPresets={drumPresets}
-                    synthPresets={synthPresets}
                     currentDrumPreset={currentDrumPreset}
-                    currentSynthPreset={currentSynthPreset}
                     onDrumPresetChange={handleDrumPresetChange}
-                    onSynthPresetChange={handleSynthPresetChange}
                     onSave={handleSave}
                     onLoad={() => setShowLoadModal(true)}
                     onExport={handleExport}
