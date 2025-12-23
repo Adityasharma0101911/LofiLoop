@@ -1,5 +1,10 @@
+import { ThemeProvider } from "@/components/ThemeProvider";
 import LoopWorkstation from "@/components/LoopWorkstation";
 
 export default function Home() {
-  return <LoopWorkstation />;
+  return (
+    <ThemeProvider>
+      <LoopWorkstation />
+    </ThemeProvider>
+  );
 }

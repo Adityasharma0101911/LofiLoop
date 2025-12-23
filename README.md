@@ -6,92 +6,85 @@ A browser-based loop workstation for building chill lofi beats. Built with Next.
 
 ## ✨ Features
 
-### Step Sequencer
-- **4 Drum Tracks**: Kick, Snare, Hi-Hat, Clap
-- **16-Step Grid**: One bar of 4/4 time
-- **Click-Drag Painting**: Draw patterns quickly
-- **Right-Click Clear**: Erase steps easily
-- **Mute/Solo**: Per-track controls
+### Core
+- **16-Step Sequencer**: 4 drum tracks + synth lane
+- **Synthesized Drums**: Kick, Snare, Hat, Clap (no samples needed)
+- **Subtractive Synth**: Oscillators, ADSR, filter with presets
 - **A/B Patterns**: Switch between two variations
 
-### Synthesizer
-- **Subtractive Synth**: Monophonic bass/lead
-- **Oscillators**: Sine, Triangle, Sawtooth, Square with detune
-- **ADSR Envelope**: Attack, Decay, Sustain, Release
-- **Low-Pass Filter**: Cutoff & Resonance controls
-- **Step Notes**: Pick notes per step from the grid
+### Effects Rack
+- **Reverb**: Algorithmic with decay control
+- **Delay**: Ping-pong with time/feedback
+- **Distortion**: Waveshaper with drive
+- **Compressor**: Master glue with threshold/ratio
 
-### Audio Engine
-- **Lookahead Scheduler**: Rock-solid timing (no jitter)
-- **Synthesized Drums**: All sounds generated in real-time
-- **BPM Control**: 60-180 BPM
-- **Swing**: 0-60% for groove
+### Pattern Generator
+- **Euclidean Rhythms**: Evenly distribute N hits across 16 steps
+- **Pattern Mutation**: Auto-generate variations
+- **Scale Lock**: Constrain notes to any scale
+- **Auto-Fill**: Genre-specific drum fills (House, Trap, D&B)
+- **Chord Suggester**: Lofi-style progressions
 
-### Project Management
-- **Save/Load**: LocalStorage persistence
-- **Export/Import**: JSON project files
-- **Presets**: Lofi Chill, House, Trap, D&B drums + Warm Bass, Pluck, Pad synths
+### Themes & UI
+- **5 Color Themes**: Midnight, Sunset, Sakura, Ocean, Forest
+- **Audio Visualizer**: Real-time waveform + frequency bars
+- **Lofi Background**: Animated particles
+- **Keyboard Shortcuts**: Space, 1-5, Q/W, arrows
+
+### Export & Sharing
+- **Recording**: Real-time capture to WebM
+- **MIDI Export**: Download as .mid file
+- **Share URL**: Copy Base64-encoded project link
+- **JSON Import/Export**: Full project backup
 
 ## 🚀 Getting Started
 
 ```bash
-# Install dependencies
 npm install
-
-# Run development server
 npm run dev
-
-# Build for production
-npm run build
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to start making beats!
 
-## 🎛️ How to Use
+## ⌨️ Keyboard Shortcuts
 
-1. **Click Play** to start the sequencer
-2. **Paint steps** on the drum grid (click-drag to draw)
-3. **Add notes** by clicking synth steps and selecting a note
-4. **Shape the sound** with the synth knobs on the right
-5. **Adjust BPM & Swing** for different vibes
-6. **Save your project** to keep your work
+| Key | Action |
+|-----|--------|
+| `Space` | Play / Stop |
+| `↑ / ↓` | BPM +1 / -1 |
+| `Shift + ↑ / ↓` | BPM +10 / -10 |
+| `Q / W` | Pattern A / B |
+| `1-5` | Mute Kick/Snare/Hat/Clap/Synth |
+| `Ctrl+S` | Save Project |
 
 ## 🏗️ Architecture
 
 ```
 src/
-├── app/                    # Next.js app router
-├── components/             # React components
-│   ├── LoopWorkstation.tsx # Main orchestrator
-│   ├── StepGrid.tsx        # 16-step sequencer grid
-│   ├── SynthPanel.tsx      # Synth controls
-│   ├── TransportBar.tsx    # Play/Stop, BPM, etc.
-│   ├── PresetBar.tsx       # Presets & save/load
-│   ├── LoadModal.tsx       # Project loader
-│   └── Knob.tsx            # Rotary knob component
-└── lib/
-    ├── audio/              # Web Audio engine
-    │   ├── audioContext.ts # AudioContext singleton
-    │   ├── scheduler.ts    # Lookahead scheduler
-    │   ├── drumSynth.ts    # Synthesized drums
-    │   └── synth.ts        # Subtractive synth
-    ├── presets/            # Drum & synth presets
-    └── storage/            # LocalStorage utilities
+├── components/
+│   ├── LoopWorkstation.tsx    # Main orchestrator
+│   ├── StepGrid.tsx           # 16-step sequencer
+│   ├── SynthPanel.tsx         # Synth controls
+│   ├── EffectsRack.tsx        # Effects controls
+│   ├── GeneratorPanel.tsx     # Pattern generator
+│   ├── Visualizer.tsx         # Audio visualizer
+│   └── ThemeProvider.tsx      # Theme system
+└── lib/audio/
+    ├── scheduler.ts           # Lookahead scheduler
+    ├── drumSynth.ts           # Synthesized drums
+    ├── synth.ts               # Subtractive synth
+    ├── effects.ts             # Effects chain
+    ├── generator.ts           # Pattern algorithms
+    └── exporter.ts            # WAV/MIDI export
 ```
-
-## 🎨 Tech Stack
-
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **Styling**: Tailwind CSS with custom lofi design system
-- **Audio**: Web Audio API with lookahead scheduling
-- **Storage**: LocalStorage for project persistence
 
 ## 🔧 Technical Highlights
 
-- **Tight Scheduler**: Uses lookahead scheduling (~25ms timer, 100ms lookahead) for consistent timing
-- **Synth Drums**: Kick (sine pitch drop), Snare (noise + tone), Hat (filtered noise), Clap (layered bursts)
-- **Subtractive Synth**: Dual detuned oscillators → Low-pass filter → ADSR envelope
-- **No Samples**: All sounds synthesized in real-time
+- **Lookahead Scheduler**: ~25ms timer, 100ms lookahead for jitter-free timing
+- **Effects Chain**: Parallel sends → master compressor
+- **Euclidean Algorithm**: Bjorklund's algorithm for polyrhythms
+- **MIDI Export**: Full MIDI 1.0 file generation
+- **Theme System**: CSS custom properties + React context
 
 ## 📝 License
 
