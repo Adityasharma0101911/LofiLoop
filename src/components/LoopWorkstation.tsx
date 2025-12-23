@@ -11,6 +11,8 @@ import EffectsRack from '@/components/EffectsRack';
 import GeneratorPanel from '@/components/GeneratorPanel';
 import ExportModal from '@/components/ExportModal';
 import LofiBackground from '@/components/LofiBackground';
+import ArrangementView from '@/components/ArrangementView';
+import SampleBrowser from '@/components/SampleBrowser';
 import { ThemeSelector } from '@/components/ThemeProvider';
 import { useKeyboardShortcuts, KeyboardShortcutsHelp } from '@/components/KeyboardShortcuts';
 import {
@@ -38,6 +40,8 @@ import {
     downloadProjectAsFile,
     importProjectFromJSON,
 } from '@/lib/storage/projectStorage';
+import { Song, createEmptySong, createPattern, addBlock, removeBlock, moveBlock, resizeBlock, toggleBlockMute, PATTERN_COLORS } from '@/lib/audio/songMode';
+import { UserSample, generateId } from '@/lib/audio/sampleLibrary';
 
 export default function LoopWorkstation() {
     // Transport state
@@ -76,11 +80,20 @@ export default function LoopWorkstation() {
     const [currentSynthPreset, setCurrentSynthPreset] = useState('Warm Bass');
 
     // Project state
-    const [projectName, setProjectName] = useState('Untitled Loop');
+    const [projectName, setProjectName] = useState('Untitled Song');
     const [showLoadModal, setShowLoadModal] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
     const [showShortcuts, setShowShortcuts] = useState(false);
-    const [activeTab, setActiveTab] = useState<'sequencer' | 'effects' | 'generator'>('sequencer');
+    const [activeTab, setActiveTab] = useState<'sequencer' | 'arrange' | 'samples' | 'effects' | 'generator'>('sequencer');
+
+    // Song mode state
+    const [song, setSong] = useState<Song>(() => createEmptySong('Untitled Song', 85));
+    const [selectedPatternId, setSelectedPatternId] = useState<string | null>(null);
+    const [currentBar, setCurrentBar] = useState(0);
+
+    // Sample library state
+    const [userSamples, setUserSamples] = useState<UserSample[]>([]);
+    const [selectedSampleId, setSelectedSampleId] = useState<string | null>(null);
 
     // Set up step change callback
     useEffect(() => {
@@ -376,6 +389,67 @@ export default function LoopWorkstation() {
         alert(`Pattern ${currentPattern} copied to ${otherPattern}`);
     }, [currentPattern]);
 
+    // Save current pattern to song
+    const handleSavePatternToSong = useCallback(() => {
+        const patternId = generateId();
+        const patternCount = Object.keys(song.patterns).length;
+        const newPattern = createPattern(
+            patternId,
+            `Pattern ${patternCount + 1}`,
+            drumPatterns[currentPattern],
+            synthPatterns[currentPattern],
+            patternCount
+        );
+        setSong(prev => ({
+            ...prev,
+            patterns: { ...prev.patterns, [patternId]: newPattern },
+        }));
+        setSelectedPatternId(patternId);
+        alert('Pattern saved to song!');
+    }, [drumPatterns, synthPatterns, currentPattern, song.patterns]);
+
+    // Song arrangement handlers
+    const handleBlockAdd = useCallback((patternId: string, startBar: number) => {
+        setSong(prev => addBlock(prev, patternId, startBar, 1));
+    }, []);
+
+    const handleBlockRemove = useCallback((index: number) => {
+        setSong(prev => removeBlock(prev, index));
+    }, []);
+
+    const handleBlockMove = useCallback((index: number, newStartBar: number) => {
+        setSong(prev => moveBlock(prev, index, newStartBar));
+    }, []);
+
+    const handleBlockResize = useCallback((index: number, newLength: number) => {
+        setSong(prev => resizeBlock(prev, index, newLength));
+    }, []);
+
+    const handleBlockToggleMute = useCallback((index: number) => {
+        setSong(prev => toggleBlockMute(prev, index));
+    }, []);
+
+    const handleTotalBarsChange = useCallback((bars: number) => {
+        setSong(prev => ({ ...prev, totalBars: Math.max(4, bars) }));
+    }, []);
+
+    const handleLoopChange = useCallback((start: number, end: number) => {
+        setSong(prev => ({ ...prev, loopStart: start, loopEnd: end }));
+    }, []);
+
+    const handleSeek = useCallback((bar: number) => {
+        setCurrentBar(bar);
+    }, []);
+
+    // Sample handlers
+    const handleSampleLoad = useCallback((sample: UserSample) => {
+        setUserSamples(prev => [...prev, sample]);
+    }, []);
+
+    const handleSampleSelect = useCallback((sampleId: string) => {
+        setSelectedSampleId(sampleId);
+    }, []);
+
     // Keyboard shortcuts
     useKeyboardShortcuts({
         onPlayStop: handlePlayStop,
@@ -446,6 +520,26 @@ export default function LoopWorkstation() {
                         🎹
                     </button>
                     <button
+                        onClick={() => setActiveTab('arrange')}
+                        className={`w-12 h-12 rounded-lg flex items-center justify-center text-xl transition-all ${activeTab === 'arrange' ? 'ring-2 ring-[#e94560]' : ''}`}
+                        style={{
+                            background: activeTab === 'arrange' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                        }}
+                        title="Arrange (Song Mode)"
+                    >
+                        🎬
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('samples')}
+                        className={`w-12 h-12 rounded-lg flex items-center justify-center text-xl transition-all ${activeTab === 'samples' ? 'ring-2 ring-[#e94560]' : ''}`}
+                        style={{
+                            background: activeTab === 'samples' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                        }}
+                        title="Sample Browser"
+                    >
+                        🎧
+                    </button>
+                    <button
                         onClick={() => setActiveTab('effects')}
                         className={`w-12 h-12 rounded-lg flex items-center justify-center text-xl transition-all ${activeTab === 'effects' ? 'ring-2 ring-[#e94560]' : ''}`}
                         style={{
@@ -506,6 +600,15 @@ export default function LoopWorkstation() {
                                         onTrackSettingChange={handleTrackSettingChange}
                                         availableNotes={getAllNotes()}
                                     />
+                                    {/* Save to song button */}
+                                    <div className="mt-4 text-center">
+                                        <button
+                                            onClick={handleSavePatternToSong}
+                                            className="lofi-button px-6 py-2"
+                                        >
+                                            💾 Save Pattern to Song
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="w-80">
                                     <SynthPanel
@@ -516,6 +619,52 @@ export default function LoopWorkstation() {
                                         currentPreset={currentSynthPreset}
                                     />
                                 </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'arrange' && (
+                            <div className="space-y-4">
+                                <div className="lofi-panel p-4">
+                                    <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--accent-primary)' }}>
+                                        🎬 Song Mode
+                                    </h3>
+                                    <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+                                        Arrange your patterns into a full song. Save patterns from the sequencer, then drag them onto the timeline.
+                                    </p>
+                                    {Object.keys(song.patterns).length === 0 ? (
+                                        <div className="text-center py-8" style={{ color: 'var(--text-muted)' }}>
+                                            <p className="text-4xl mb-4">🎼</p>
+                                            <p>No patterns yet!</p>
+                                            <p className="text-sm mt-2">Go to the Sequencer tab and click &quot;Save Pattern to Song&quot;</p>
+                                        </div>
+                                    ) : (
+                                        <ArrangementView
+                                            song={song}
+                                            currentBar={currentBar}
+                                            isPlaying={isPlaying}
+                                            onBlockAdd={handleBlockAdd}
+                                            onBlockRemove={handleBlockRemove}
+                                            onBlockMove={handleBlockMove}
+                                            onBlockResize={handleBlockResize}
+                                            onBlockToggleMute={handleBlockToggleMute}
+                                            onTotalBarsChange={handleTotalBarsChange}
+                                            onLoopChange={handleLoopChange}
+                                            onSeek={handleSeek}
+                                            selectedPattern={selectedPatternId}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'samples' && (
+                            <div className="h-full">
+                                <SampleBrowser
+                                    userSamples={userSamples}
+                                    onSampleLoad={handleSampleLoad}
+                                    onSampleSelect={handleSampleSelect}
+                                    selectedSampleId={selectedSampleId}
+                                />
                             </div>
                         )}
 
