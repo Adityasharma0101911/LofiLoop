@@ -4,8 +4,9 @@ import { DEFAULT_THEME, isThemeId, type ThemeId } from '@/lib/themes';
 import { readPrefs, writePrefs } from './persistence';
 
 export type SidebarTab = 'create' | 'fx' | 'mixer';
+export type MainView = 'pattern' | 'song';
 export type InspectorTab = 'sound' | 'notes' | 'lanes';
-export type DialogId = 'export' | 'library' | 'shortcuts' | 'new' | 'share' | null;
+export type DialogId = 'export' | 'library' | 'shortcuts' | 'new' | 'share' | 'versions' | 'discover' | null;
 export type ToastTone = 'info' | 'success' | 'error';
 
 export interface Toast {
@@ -30,6 +31,13 @@ interface Prefs {
   sidebarOpen: boolean;
   sidebarTab: SidebarTab;
   inspectorOpen: boolean;
+  mainView: MainView;
+  /** Arrangement zoom in pixels per bar */
+  songZoom: number;
+  /** Keep the playhead in view while the song plays */
+  followPlayhead: boolean;
+  /** The guided tour has been shown (or skipped) */
+  tourSeen: boolean;
 }
 
 const DEFAULT_PREFS: Prefs = {
@@ -39,6 +47,10 @@ const DEFAULT_PREFS: Prefs = {
   sidebarOpen: true,
   sidebarTab: 'create',
   inspectorOpen: true,
+  mainView: 'pattern',
+  songZoom: 28,
+  followPlayhead: true,
+  tourSeen: false,
 };
 
 interface UiState extends Prefs {
@@ -52,6 +64,11 @@ interface UiState extends Prefs {
   patternClipboard: Record<string, Step[]> | null;
   saveStatus: SaveStatus;
   savedAt: number | null;
+  selectedSectionId: string | null;
+  /** Where song playback starts, in bars */
+  songCursor: number;
+  /** Full-screen performance view */
+  performance: boolean;
 }
 
 function loadPrefs(): Prefs {
@@ -70,6 +87,9 @@ export const useUi = create<UiState>()(() => ({
   patternClipboard: null,
   saveStatus: 'idle',
   savedAt: null,
+  selectedSectionId: null,
+  songCursor: 0,
+  performance: false,
 }));
 
 useUi.subscribe((state, prev) => {

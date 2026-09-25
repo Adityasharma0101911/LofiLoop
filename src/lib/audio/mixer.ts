@@ -8,7 +8,7 @@
  *           ├─> reverb send ─> IR ───┤
  *           └─> delay send ─> ping-pong
  *                                    v
- *   bus trim -> drive -> crush -> wow/flutter -> tone (+ crackle) -> transitions (sweep, fade, tape stop)
+ *   bus trim -> drive -> crush -> wow/flutter -> tone (+ crackle) -> transitions (sweep, filter lane, fade, tape stop)
  *     -> glue (+ ambience) -> master -> limiter -> safety clipper
  */
 import { dbToGain, expMap } from '@/lib/utils/math';
@@ -101,6 +101,8 @@ export class Mixer {
   private readonly toneHp: BiquadFilterNode;
   private readonly toneLp: BiquadFilterNode;
   private readonly sweep: BiquadFilterNode;
+  /** Master filter automation lane (separate from the transition sweep so they never fight) */
+  private readonly laneFilter: BiquadFilterNode;
   private readonly fade: GainNode;
   private readonly tapeStop: DelayNode;
   private readonly crackle: AudioBufferSourceNode;
@@ -214,6 +216,10 @@ export class Mixer {
     this.sweep.type = 'lowpass';
     this.sweep.Q.value = 1.1;
     this.sweep.frequency.value = this.nyquist;
+    this.laneFilter = ctx.createBiquadFilter();
+    this.laneFilter.type = 'lowpass';
+    this.laneFilter.Q.value = 0.9;
+    this.laneFilter.frequency.value = this.nyquist;
     this.fade = ctx.createGain();
     this.tapeStop = ctx.createDelay(3);
     this.tapeStop.delayTime.value = 0;
@@ -238,6 +244,7 @@ export class Mixer {
     this.output = ctx.createGain();
     this.toneLp
       .connect(this.sweep)
+      .connect(this.laneFilter)
       .connect(this.fade)
       .connect(this.tapeStop)
       .connect(this.glue)
@@ -357,6 +364,8 @@ export class Mixer {
     const time = this.ctx.currentTime;
     for (const target of this.automated) this.resolveTarget(target)?.(0)[0].cancelScheduledValues(time);
     this.automated.clear();
+    // Not a project setting, so sync() won't restore it: open the lane filter again.
+    this.laneFilter.frequency.setValueAtTime(this.nyquist, time);
     for (const strip of this.strips.values()) strip.fx = null;
     this.fx = null;
     this.bpm = 0;
@@ -420,6 +429,31 @@ export class Mixer {
     }
   }
 
+  /** Momentary performance effects: a low-pass sweep, a reverb/echo wash and a tape stop. */
+  liveEffect(kind: 'filter' | 'wash' | 'tapeStop', active: boolean, time: number, bpm: number): void {
+    if (kind === 'filter') {
+      const f = this.sweep.frequency;
+      f.cancelScheduledValues(time);
+      f.setValueAtTime(f.value, time);
+      if (active) f.exponentialRampToValueAtTime(420, time + 0.6);
+      else f.exponentialRampToValueAtTime(this.nyquist, time + 0.25);
+    } else if (kind === 'wash') {
+      const base = this.fx ?? { reverbMix: 0.35, delayMix: 0.25, delayFeedback: 0.35 };
+      for (const [param, on, off] of [
+        [this.reverbReturn.gain, 1.6, base.reverbMix * 1.4],
+        [this.delayReturn.gain, 1, base.delayMix * 0.9],
+        [this.feedbackL.gain, 0.78, base.delayFeedback],
+        [this.feedbackR.gain, 0.78, base.delayFeedback],
+      ] as const) {
+        param.cancelScheduledValues(time);
+        param.setTargetAtTime(active ? on : off, time, active ? 0.15 : 0.4);
+      }
+    } else if (kind === 'tapeStop' && active) {
+      const beat = 60 / bpm;
+      this.exitTransition('tapeStop', time, time + beat * 2);
+    }
+  }
+
   /** Clear pending transitions (transport stop or seek). */
   resetTransitions(time = this.ctx.currentTime): void {
     for (const param of [this.sweep.frequency, this.fade.gain, this.tapeStop.delayTime]) {
@@ -456,7 +490,7 @@ export class Mixer {
         case 'tone':
           return (v) => [this.toneLp.frequency, Math.min(this.nyquist, toneFrequency(v))];
         case 'filter':
-          return (v) => [this.sweep.frequency, Math.min(this.nyquist, expMap(v, 150, OPEN))];
+          return (v) => [this.laneFilter.frequency, Math.min(this.nyquist, expMap(v, 150, OPEN))];
         case 'reverbMix':
           return (v) => [this.reverbReturn.gain, v * 1.4];
         case 'delayMix':

@@ -116,6 +116,10 @@ export class AudioEngine {
   private onEnd: (() => void) | null = null;
   private endTimer: ReturnType<typeof setTimeout> | null = null;
   private metronome = false;
+  /** Performance mode: jump here at the next bar line. */
+  private queuedBar: number | null = null;
+  /** Performance mode: repeat a short loop from this position while held. */
+  private stutterState: { songStep: number; stepIndex: number; length: number; count: number } | null = null;
   private queue: QueuedStep[] = [];
   private raf = 0;
   private liveId = 0;
@@ -246,6 +250,8 @@ export class AudioEngine {
 
   stop(): void {
     this.session += 1;
+    this.queuedBar = null;
+    this.stutterState = null;
     if (this.endTimer) clearTimeout(this.endTimer);
     this.endTimer = null;
     if (!this.playing) return;
@@ -326,6 +332,41 @@ export class AudioEngine {
   noteOff(note: LiveNote | null): void {
     if (!note || !this.ctx) return;
     for (const voice of note.voices) voice.stop(this.ctx.currentTime, note.release);
+  }
+
+  /** Jump to a bar on the next bar line, keeping the groove (performance mode). */
+  queueSeek(bar: number): void {
+    if (!this.playing) {
+      this.play({ fromBar: bar }).catch(() => undefined);
+      return;
+    }
+    this.queuedBar = Math.max(0, Math.round(bar));
+  }
+
+  get queuedSeek(): number | null {
+    return this.queuedBar;
+  }
+
+  /** Hold to repeat the last `length` steps (a beat-repeat effect); release to carry on. */
+  stutter(length: number | null): void {
+    if (length === null) {
+      if (this.stutterState && this.getProject) {
+        // Resume where the groove would be if the stutter had never happened.
+        const { songStep, stepIndex, count } = this.stutterState;
+        const length = getPattern(this.current(), this.patternId)?.length ?? 16;
+        this.songStep = songStep + count;
+        this.stepIndex = (stepIndex + count) % length;
+      }
+      this.stutterState = null;
+      return;
+    }
+    this.stutterState = { songStep: this.songStep, stepIndex: this.stepIndex, length, count: 0 };
+  }
+
+  /** Momentary performance effects that don't change the project. */
+  liveEffect(kind: 'filter' | 'wash' | 'tapeStop', active: boolean): void {
+    if (!this.mixer || !this.ctx) return;
+    this.mixer.liveEffect(kind, active, this.ctx.currentTime, this.current().bpm);
   }
 
   /**
@@ -419,6 +460,21 @@ export class AudioEngine {
       project.bpm,
     );
     this.nextStepTime += stepDuration(project.bpm);
+    this.advance();
+  }
+
+  /** Move to the next step, looping back while a stutter is held. */
+  private advance() {
+    const st = this.stutterState;
+    if (st) {
+      st.count += 1;
+      if (st.count % st.length === 0) {
+        this.songStep = st.songStep;
+        this.stepIndex = st.stepIndex;
+        return;
+      }
+    }
+    this.songStep += 1;
     this.stepIndex += 1;
   }
 
@@ -439,6 +495,13 @@ export class AudioEngine {
         return false;
       }
       this.songStep = loopStart;
+      initial = true;
+    }
+
+    if (this.queuedBar !== null && this.songStep % 16 === 0) {
+      this.songStep = Math.min(this.queuedBar * 16, Math.max(0, timeline.totalSteps - 1));
+      this.queuedBar = null;
+      this.mixer!.resetTransitions(this.nextStepTime);
       initial = true;
     }
 
@@ -473,7 +536,7 @@ export class AudioEngine {
       slot.bpm,
     );
     this.nextStepTime += stepDuration(slot.bpm);
-    this.songStep += 1;
+    this.advance();
     return true;
   }
 

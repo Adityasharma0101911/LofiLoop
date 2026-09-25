@@ -1,4 +1,5 @@
 import { clamp, expMap } from '@/lib/utils/math';
+import { num, vel } from './shared';
 import { VoiceBuilder, filter, gateEnvelope, velocityGain, type VoiceFn } from './utils';
 
 /** In chop mode, C3 plays slice 1, C#3 slice 2 and so on. */
@@ -15,7 +16,7 @@ export const sampler: VoiceFn = (ctx, out, { time, note, velocity, duration, sam
 
   let offset: number;
   let length: number;
-  let rate = Math.pow(2, (p.tune ?? 0) / 12);
+  let rate = Math.pow(2, num(p, 'tune', 0, -48, 48) / 12);
   let oneShot = false;
   if (ref.mode === 'chop') {
     const index = note - CHOP_BASE_NOTE;
@@ -32,17 +33,29 @@ export const sampler: VoiceFn = (ctx, out, { time, note, velocity, duration, sam
   }
 
   const playable = length / rate;
-  const gateEnd = oneShot ? time + playable : time + Math.min(duration, playable);
-  const release = p.release ?? 0.08;
+  const gateEnd = oneShot
+    ? time + playable
+    : time + Math.min(Number.isFinite(duration) ? duration : playable, playable);
+  const release = num(p, 'release', 0.08, 0.005, 10);
   const end = Math.min(
     time + playable + 0.01,
-    gateEnvelope(v.output.gain, time, velocityGain(velocity), p.attack ?? 0.003, 0.01, 1, gateEnd, release),
+    gateEnvelope(
+      v.output.gain,
+      time,
+      velocityGain(vel(velocity)),
+      num(p, 'attack', 0.003, 0.001, 10),
+      0.01,
+      1,
+      gateEnd,
+      release,
+    ),
   );
 
   const src = ctx.createBufferSource();
   src.buffer = buffer;
   src.playbackRate.value = rate;
-  const lp = filter(ctx, 'lowpass', (p.cutoff ?? 1) >= 0.999 ? 20000 : expMap(p.cutoff, 200, 20000), 0.7);
+  const cutoff = num(p, 'cutoff', 1, 0, 1);
+  const lp = filter(ctx, 'lowpass', cutoff >= 0.999 ? 20000 : expMap(cutoff, 200, 20000), 0.7);
   src.connect(lp).connect(v.output);
   v.source(src, end + 0.02, time, offset);
   return v.finish();

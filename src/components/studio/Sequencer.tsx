@@ -4,6 +4,7 @@ import { memo, useCallback, useRef, useState, type CSSProperties, type KeyboardE
 import { Plus } from 'lucide-react';
 import { engine } from '@/lib/audio/engine';
 import { noteName } from '@/lib/music/theory';
+import { CHOP_BASE_NOTE } from '@/lib/audio/instruments/sampler';
 import { INSTRUMENTS, type InstrumentId } from '@/lib/project/instruments';
 import { MAX_TRACKS, type Step, type Track } from '@/lib/project/types';
 import { actions, getProject, selectActivePattern, useStudio } from '@/lib/store/studio';
@@ -38,6 +39,8 @@ interface StepPadProps {
   color: string;
   melodic: boolean;
   showNote: boolean;
+  /** Chopped sampler: label notes with their slice number */
+  chop: boolean;
   dim: boolean;
   focused: boolean;
   trackName: string;
@@ -51,6 +54,7 @@ const StepPad = memo(function StepPad({
   color,
   melodic,
   showNote,
+  chop,
   dim,
   focused,
   trackName,
@@ -84,7 +88,7 @@ const StepPad = memo(function StepPad({
           )}
           {showNote && (
             <span className="pointer-events-none absolute inset-x-0 top-1 text-center font-mono text-[9px] leading-none font-bold text-black/70">
-              {noteName(step.note, false)}
+              {chop ? step.note - CHOP_BASE_NOTE + 1 : noteName(step.note, false)}
             </span>
           )}
           {step.ratchet > 1 && (
@@ -142,6 +146,7 @@ const TrackRow = memo(function TrackRow({
         color={def.color}
         melodic={def.melodic}
         showNote={def.melodic}
+        chop={track.sample?.mode === 'chop'}
         dim={dim}
         focused={focusCol === i}
         trackName={track.name}
@@ -359,6 +364,7 @@ export function Sequencer() {
   return (
     <div
       ref={scrollRef}
+      data-tour="grid"
       className={cn(
         'relative min-h-0 flex-1 overflow-auto overscroll-contain [--cw:26px] [--hw:132px] sm:[--cw:30px] sm:[--hw:236px]',
         scope,

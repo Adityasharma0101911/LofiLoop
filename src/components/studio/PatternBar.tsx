@@ -12,10 +12,10 @@ import {
   Repeat2,
   Trash2,
 } from 'lucide-react';
-import { engine } from '@/lib/audio/engine';
-import { MAX_PATTERNS, PATTERN_LENGTHS, type PlayMode } from '@/lib/project/types';
+import { MAX_PATTERNS, PATTERN_LENGTHS } from '@/lib/project/types';
 import { actions, selectActivePattern, useStudio } from '@/lib/store/studio';
-import { ui, useUi } from '@/lib/store/ui';
+import { ui, useUi, type MainView } from '@/lib/store/ui';
+import { setMainView } from '@/lib/transport';
 import { usePlayhead } from '@/hooks/usePlayhead';
 import { IconButton } from '@/components/ui/Button';
 import { Menu } from '@/components/ui/Menu';
@@ -140,56 +140,55 @@ export function PatternBar() {
   const mode = useStudio((s) => s.project.playMode);
   const pattern = useStudio(selectActivePattern);
   const sidebarOpen = useUi((s) => s.sidebarOpen);
-
-  const setMode = (next: PlayMode) => {
-    actions.setPlayMode(next);
-    if (engine.isPlaying) void engine.restart();
-  };
+  const view = useUi((s) => s.mainView);
 
   return (
     <div className="border-line bg-surface/60 shrink-0 border-b">
       <div className="scrollbar-none flex h-12 items-center gap-2 overflow-x-auto px-2 sm:px-3">
         <Segmented
-          label="Playback mode"
-          value={mode}
-          onChange={setMode}
+          data-tour="views"
+          label="View"
+          value={view}
+          onChange={(v: MainView) => setMainView(v)}
           options={[
-            { value: 'pattern', label: 'Pattern', title: 'Loop the selected pattern' },
-            { value: 'song', label: 'Song', title: 'Play the pattern chain in order' },
+            { value: 'pattern', label: 'Patterns', title: 'Edit the steps of a pattern' },
+            { value: 'song', label: 'Arrangement', title: 'Arrange sections into a full song' },
           ]}
         />
         <span className="bg-line h-5 w-px shrink-0" />
-        <PatternTabs />
-        <div className="ml-auto flex shrink-0 items-center gap-1">
-          <label className="sr-only" htmlFor="pattern-length">
-            Pattern length
-          </label>
-          <Select
-            id="pattern-length"
-            value={pattern.length}
-            onChange={(e) => actions.setPatternLength(pattern.id, Number(e.target.value))}
-            title="Pattern length in steps"
-          >
-            {PATTERN_LENGTHS.map((len) => (
-              <option key={len} value={len}>
-                {len} steps{len % 16 === 0 ? ` · ${len / 16} bar${len > 16 ? 's' : ''}` : ''}
-              </option>
-            ))}
-            {!(PATTERN_LENGTHS as readonly number[]).includes(pattern.length) && (
-              <option value={pattern.length}>{pattern.length} steps</option>
-            )}
-          </Select>
-          <PatternMenu />
-          <IconButton
-            label={sidebarOpen ? 'Hide side panel' : 'Show side panel'}
-            onClick={() => ui.set({ sidebarOpen: !sidebarOpen })}
-            className="hidden lg:inline-flex"
-          >
-            {sidebarOpen ? <PanelRightClose /> : <PanelRight />}
-          </IconButton>
-        </div>
+        {view === 'pattern' && <PatternTabs />}
+        {view === 'pattern' && (
+          <div className="ml-auto flex shrink-0 items-center gap-1">
+            <label className="sr-only" htmlFor="pattern-length">
+              Pattern length
+            </label>
+            <Select
+              id="pattern-length"
+              value={pattern.length}
+              onChange={(e) => actions.setPatternLength(pattern.id, Number(e.target.value))}
+              title="Pattern length in steps"
+            >
+              {PATTERN_LENGTHS.map((len) => (
+                <option key={len} value={len}>
+                  {len} steps{len % 16 === 0 ? ` · ${len / 16} bar${len > 16 ? 's' : ''}` : ''}
+                </option>
+              ))}
+              {!(PATTERN_LENGTHS as readonly number[]).includes(pattern.length) && (
+                <option value={pattern.length}>{pattern.length} steps</option>
+              )}
+            </Select>
+            <PatternMenu />
+          </div>
+        )}
+        <IconButton
+          label={sidebarOpen ? 'Hide side panel' : 'Show side panel'}
+          onClick={() => ui.set({ sidebarOpen: !sidebarOpen })}
+          className={cn('hidden lg:inline-flex', view === 'song' && 'ml-auto')}
+        >
+          {sidebarOpen ? <PanelRightClose /> : <PanelRight />}
+        </IconButton>
       </div>
-      {mode === 'song' && <SongChain />}
+      {view === 'pattern' && mode === 'song' && <SongChain />}
     </div>
   );
 }

@@ -39,6 +39,7 @@ import {
   GENRES,
   parseGroovePart,
   type BassStyle,
+  type ChordRhythm,
   type DrumGroove,
   type Genre,
   type GenreId,
@@ -69,29 +70,30 @@ function patternLength(length: number): number {
 }
 
 /** Velocities are kept at 1/100 precision so they survive the project file format. */
-function vel(value: number): number {
+export function vel(value: number): number {
   return Math.round(clamp(value, 0.05, 1) * 100) / 100;
 }
 
 /** Velocity with a little relative random variation. */
-function human(value: number, rng: Rng, spread = 0.07): number {
+export function human(value: number, rng: Rng, spread = 0.07): number {
   return vel(value * (1 + (rng() - 0.5) * 2 * spread));
 }
 
-function round2(value: number): number {
-  return Math.round(value * 100) / 100;
+/** Round to 1/100 (never -0, which the project file format can't tell from 0). */
+export function round2(value: number): number {
+  return Math.round(value * 100) / 100 || 0;
 }
 
-function blankSteps(instrument: InstrumentId, root: number): Step[] {
+export function blankSteps(instrument: InstrumentId, root: number): Step[] {
   return createSteps(rootNoteFor(instrument, root));
 }
 
-function setHit(steps: Step[], index: number, fields: Partial<Step>): void {
+export function setHit(steps: Step[], index: number, fields: Partial<Step>): void {
   steps[index] = { ...steps[index], on: true, prob: 1, ratchet: 1, len: 1, ...fields };
 }
 
 /** Move a note by octaves into [lo, hi] (the window should span at least 12 semitones). */
-function fitOctave(note: number, lo: number, hi: number): number {
+export function fitOctave(note: number, lo: number, hi: number): number {
   let n = note;
   while (n < lo) n += 12;
   while (n > hi) n -= 12;
@@ -99,7 +101,7 @@ function fitOctave(note: number, lo: number, hi: number): number {
 }
 
 /** Mix a seed with a label into an independent 32-bit seed (FNV-1a + avalanche). */
-function mixSeed(seed: number, salt: string): number {
+export function mixSeed(seed: number, salt: string): number {
   let h = (Math.floor(Number.isFinite(seed) ? seed : 0) ^ 0x811c9dc5) >>> 0;
   for (let i = 0; i < salt.length; i++) {
     h ^= salt.charCodeAt(i);
@@ -113,7 +115,7 @@ function mixSeed(seed: number, salt: string): number {
   return h >>> 0;
 }
 
-function seededRng(seed: number, salt: string): Rng {
+export function seededRng(seed: number, salt: string): Rng {
   return createRng(mixSeed(seed, salt));
 }
 
@@ -122,7 +124,7 @@ export function scaleFamily(scale: ScaleId): ScaleFamily {
 }
 
 /** Pentatonic/blues scales borrow their parent heptatonic scale for harmony (like buildChord). */
-function harmonyScale(scale: ScaleId): ScaleId {
+export function harmonyScale(scale: ScaleId): ScaleId {
   if (SCALES[scale].intervals.length === 7) return scale;
   return scale === 'pentatonicMajor' ? 'major' : 'minor';
 }
@@ -139,7 +141,7 @@ export function chordSpan(length: number, count: number): number {
   return Math.max(1, Math.ceil(n / count));
 }
 
-function chordAt(progression: number[], span: number, step: number): number {
+export function chordAt(progression: number[], span: number, step: number): number {
   return progression[Math.floor(step / span) % progression.length];
 }
 
@@ -237,10 +239,10 @@ const PART_ALIASES: Partial<Record<InstrumentId, InstrumentId>> = {
   '808': 'kick',
 };
 
-const SNARE_FILLS = ['..g.', '.g.o', '..go', 'g.go', '...o', '.g.g'];
-const BUILD_FILLS = ['..x.', '..xx', '.x.x', 'x.xx'];
-const HAT_ROLLS = ['..34', '3.4.', '.234', '2.44', '..44'];
-const TOM_FILLS = ['.o.x', 'oo.x', '..ox', 'o.ox'];
+export const SNARE_FILLS = ['..g.', '.g.o', '..go', 'g.go', '...o', '.g.g'];
+export const BUILD_FILLS = ['..x.', '..xx', '.x.x', 'x.xx'];
+export const HAT_ROLLS = ['..34', '3.4.', '.234', '2.44', '..44'];
+export const TOM_FILLS = ['.o.x', 'oo.x', '..ox', 'o.ox'];
 
 type DrumRole = 'kick' | 'snare' | 'hat' | 'perc';
 
@@ -251,7 +253,7 @@ function drumRole(instrument: InstrumentId): DrumRole {
   return 'perc';
 }
 
-function grooveFor(genre: Genre, ctx: GenerateContext): DrumGroove {
+export function grooveFor(genre: Genre, ctx: GenerateContext): DrumGroove {
   const n = genre.grooves.length;
   const index = ctx.groove ?? randInt(ctx.rng, 0, n - 1);
   return genre.grooves[((Math.floor(index) % n) + n) % n];
@@ -269,7 +271,7 @@ function partFor(groove: DrumGroove, instrument: InstrumentId): string {
 }
 
 /** Lay a short figure (groove notation) onto the steps starting at `start`; never softens a louder hit. */
-function applyFigure(steps: Step[], start: number, figure: string, note: number, rng: Rng, ramp: boolean): void {
+export function applyFigure(steps: Step[], start: number, figure: string, note: number, rng: Rng, ramp: boolean): void {
   for (let k = 0; k < figure.length; k++) {
     const i = start + k;
     const hit = parseGroovePart(figure[k])[0];
@@ -340,14 +342,15 @@ function varyBar(
   }
 }
 
-function addFill(
+/** Drum fill over the last beat of the pattern in the genre's fill style (snare figure, build or hat roll). */
+export function addDrumFill(
   steps: Step[],
   instrument: InstrumentId,
   genre: Genre,
   rng: Rng,
   length: number,
   note: number,
-  blank: Step,
+  blank: Step = createStep(note),
 ): void {
   const style = genre.drums.fill;
   if (style === 'none') return;
@@ -379,12 +382,26 @@ function addFill(
  */
 export function generateDrumSteps(genreId: GenreId, instrument: InstrumentId, ctx: GenerateContext): Step[] {
   const genre = GENRES[genreId];
+  return drumStepsFromGroove(grooveFor(genre, ctx), genre, instrument, ctx);
+}
+
+/**
+ * Drum part from an explicit groove (e.g. one borrowed from another genre),
+ * varied with `genre`'s drum feel. `fill: false` leaves the end of the pattern
+ * alone (song sections put their fills in a separate fill pattern).
+ */
+export function drumStepsFromGroove(
+  groove: DrumGroove,
+  genre: Genre,
+  instrument: InstrumentId,
+  ctx: GenerateContext,
+  options: { fill?: boolean } = {},
+): Step[] {
   const rng = ctx.rng;
   const length = patternLength(ctx.length);
   const note = rootNoteFor(instrument, ctx.root);
   const blank = createStep(note);
   const steps = createSteps(note);
-  const groove = grooveFor(genre, ctx);
 
   if (instrument === 'crash') {
     setHit(steps, 0, { note, vel: human(0.72, rng) });
@@ -402,7 +419,7 @@ export function generateDrumSteps(genreId: GenreId, instrument: InstrumentId, ct
 
   const bars = Math.ceil(length / BAR);
   for (let bar = 0; bar < bars; bar++) varyBar(steps, instrument, genre, rng, bar, length, note, blank);
-  if (length > BAR) addFill(steps, instrument, genre, rng, length, note, blank);
+  if (length > BAR && options.fill !== false) addDrumFill(steps, instrument, genre, rng, length, note, blank);
   return steps;
 }
 
@@ -421,16 +438,25 @@ export function generateChordSteps(
   progression: number[],
 ): Step[] {
   const genre = GENRES[genreId];
+  const span = chordSpan(ctx.length, progression.length);
+  const options = genre.chordRhythms.filter((r) => r.span === span);
+  const rhythm = options.length ? pick(ctx.rng, options) : { hits: [0], push: 0 };
+  return chordStepsWithRhythm(track, ctx, progression, rhythm);
+}
+
+/** Chord part with an explicit rhythm (onsets per chord slot, anticipation and gate). */
+export function chordStepsWithRhythm(
+  track: Track,
+  ctx: GenerateContext,
+  progression: number[],
+  rhythm: Pick<ChordRhythm, 'hits' | 'push' | 'gate'>,
+): Step[] {
   const rng = ctx.rng;
   const length = patternLength(ctx.length);
   const steps = blankSteps(track.instrument, ctx.root);
   if (!progression.length) return steps;
   const [lo, hi] = INSTRUMENTS[track.instrument].noteRange;
   const span = chordSpan(length, progression.length);
-  const options = genre.chordRhythms.filter((r) => r.span === span);
-  const rhythm: { hits: number[]; push: number; gate?: number } = options.length
-    ? pick(rng, options)
-    : { hits: [0], push: 0 };
 
   const onsets = new Map<number, { slot: number; first: boolean }>();
   const slots = Math.ceil(length / span);
@@ -497,7 +523,14 @@ const BASS_MAX_LEN: Record<BassStyle, number> = {
   sustain: 16,
 };
 
-function bassSteps(style: BassStyle, genre: Genre, track: Track, ctx: GenerateContext, progression: number[]): Step[] {
+/** Bass line in an explicit style; `genre` supplies the groove the line locks to when `ctx.kick` is missing. */
+export function bassSteps(
+  style: BassStyle,
+  genre: Genre,
+  track: Track,
+  ctx: GenerateContext,
+  progression: number[],
+): Step[] {
   const rng = ctx.rng;
   const length = patternLength(ctx.length);
   const steps = blankSteps(track.instrument, ctx.root);
@@ -654,7 +687,8 @@ const MOVES: [number, number][] = [
   [-4, 0.015],
 ];
 
-function melodyWindow(instrument: InstrumentId, register: number): [number, number] {
+/** Comfortable melody register for an instrument, [low, high] MIDI. */
+export function melodyWindow(instrument: InstrumentId, register: number): [number, number] {
   const def = INSTRUMENTS[instrument];
   const [min, max] = def.noteRange;
   const center = clamp(Math.max(def.defaultNote, 67) + register, min + 6, max - 6);
@@ -669,7 +703,8 @@ function nearestIndex(pool: number[], note: number): number {
   return best;
 }
 
-function motifRhythm(grid: number, density: number, syncopation: number, motifLen: number, rng: Rng): number[] {
+/** Onsets (sorted, within `motifLen`) for a motif on a rhythmic grid. */
+export function motifRhythm(grid: number, density: number, syncopation: number, motifLen: number, rng: Rng): number[] {
   const onsets = new Set<number>();
   for (let pos = 0; pos < motifLen; pos += grid) {
     const weight = pos % 8 === 0 ? 1.3 : pos % 4 === 0 ? 1.1 : 0.8;
@@ -802,7 +837,8 @@ export function generateTrackSteps(
   return generateMelodySteps(genreId, track, ctx, progression);
 }
 
-const MIX: Record<InstrumentId, { volume: number; pan: number; reverb: number; delay: number }> = {
+/** Default mixer settings per instrument. */
+export const MIX: Record<InstrumentId, { volume: number; pan: number; reverb: number; delay: number }> = {
   kick: { volume: 0.88, pan: 0, reverb: 0.02, delay: 0 },
   '808': { volume: 0.74, pan: 0, reverb: 0, delay: 0 },
   snare: { volume: 0.76, pan: 0.02, reverb: 0.14, delay: 0 },
@@ -856,7 +892,7 @@ function chokeRank(track: Track): number {
  * Voices in one choke group (closed/open hat) sounding on the same step cut each
  * other off; keep the longer voice (or the one the user kept) and drop the rest.
  */
-function resolveChokes(
+export function resolveChokes(
   tracks: Track[],
   steps: Record<string, Step[]>,
   length: number,
@@ -886,7 +922,7 @@ function resolveChokes(
 
 type BaseContext = Omit<GenerateContext, 'rng'>;
 
-function isChordTrack(track: Track): boolean {
+export function isChordTrack(track: Track): boolean {
   return INSTRUMENTS[track.instrument].polyphonic && track.chord !== 'off';
 }
 
@@ -915,6 +951,11 @@ function generateTracks(
     result[track.id] = generateTrackSteps(genreId, track, { ...ctxFor(index, track), kick }, progression);
   });
   return result;
+}
+
+/** A seed as a cover seed that survives the project file format (0..2^31-1). */
+export function coverSeed(seed: number): number {
+  return Number.isFinite(seed) ? Math.floor(Math.abs(seed)) % 2 ** 31 : 0;
 }
 
 const NAME_FIRST = [
@@ -1028,7 +1069,16 @@ export function generateBeat(genreId: GenreId, options: GenerateBeatOptions): Pr
   const name = (options.name?.trim() || beatName(seed, genreId)).slice(0, 120);
 
   const tracks = createKitTracks(genre);
-  const project = createProject({ name, bpm, swing, root, scale, tracks, fx: genre.fx });
+  const project = createProject({
+    name,
+    bpm,
+    swing,
+    root,
+    scale,
+    tracks,
+    fx: genre.fx,
+    meta: { coverSeed: coverSeed(seed), styles: [genreId] },
+  });
   const base: BaseContext = { root, scale, length, groove };
   const progression = generateProgression(genreId, { ...base, rng: seededRng(seed, `${genreId}:progression`) });
   const all = new Set(tracks.map((t) => t.id));
@@ -1065,7 +1115,7 @@ export function generateBeat(genreId: GenreId, options: GenerateBeatOptions): Pr
 }
 
 /** Read the chord roots back from an existing chord part (used when the user keeps it). */
-function progressionFromSteps(steps: Step[], length: number, root: number, scale: ScaleId): number[] | null {
+export function progressionFromSteps(steps: Step[], length: number, root: number, scale: ScaleId): number[] | null {
   const onsets: number[] = [];
   for (let i = 0; i < length; i++) if (steps[i]?.on) onsets.push(i);
   if (!onsets.length) return null;

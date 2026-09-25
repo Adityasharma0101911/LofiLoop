@@ -2,10 +2,12 @@
 
 import { useEffect } from 'react';
 import { engine } from '@/lib/audio/engine';
+import { liveInput } from '@/lib/input/live';
 import { actions, getProject, selectActivePattern, useStudio } from '@/lib/store/studio';
 import { ui, useUi } from '@/lib/store/ui';
 import { tapTempo } from '@/lib/utils/tapTempo';
 import { saveNow } from '@/components/studio/bootstrap';
+import { togglePlayback } from '@/lib/transport';
 
 function isEditable(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -40,6 +42,11 @@ export const SHORTCUTS: { keys: string[]; action: string; group: string }[] = [
   { keys: ['Mod', 'S'], action: 'Save now', group: 'Project' },
   { keys: ['Mod', 'E'], action: 'Export', group: 'Project' },
   { keys: ['Mod', 'O'], action: 'Open library', group: 'Project' },
+  { keys: ['P'], action: 'Play the selected track from your keyboard', group: 'Keyboard piano' },
+  { keys: ['Z–/', 'Q–]'], action: 'Notes (two rows, like a piano)', group: 'Keyboard piano' },
+  { keys: ['←', '→'], action: 'Octave down / up', group: 'Keyboard piano' },
+  { keys: ['Shift'], action: 'Accent (hold while playing)', group: 'Keyboard piano' },
+  { keys: ['Esc'], action: 'Leave piano mode (letter and number shortcuts return)', group: 'Keyboard piano' },
   { keys: ['?'], action: 'Show shortcuts', group: 'Help' },
 ];
 
@@ -71,7 +78,7 @@ export function useHotkeys() {
           actions.redo();
         } else if (key === 's') {
           e.preventDefault();
-          saveNow(true);
+          void saveNow(true);
         } else if (key === 'e') {
           e.preventDefault();
           ui.openDialog('export');
@@ -105,7 +112,7 @@ export function useHotkeys() {
       switch (e.key) {
         case ' ':
           e.preventDefault();
-          if (!e.repeat) void engine.toggle();
+          if (!e.repeat) void togglePlayback();
           return;
         case 'ArrowUp':
         case 'ArrowDown':
@@ -128,6 +135,7 @@ export function useHotkeys() {
           return;
         case 'Escape':
           useUi.setState({ stepEditor: null });
+          if (liveInput.getState().pianoOn) liveInput.enablePiano(false);
           return;
       }
 
@@ -157,6 +165,10 @@ export function useHotkeys() {
           if (bpm) actions.setBpm(bpm);
           break;
         }
+        case 'p':
+          liveInput.enablePiano(true);
+          if (!selected) ui.toast('Select a track to play it from your keyboard', 'info');
+          break;
       }
     };
 

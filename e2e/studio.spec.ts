@@ -104,7 +104,8 @@ test('exports a WAV file', async ({ studio: page }) => {
   const bytes = await readFile((await download.path())!);
   expect(bytes.subarray(0, 4).toString()).toBe('RIFF');
   expect(bytes.length).toBeGreaterThan(1_000_000);
-  await expect(page.getByText('Export ready. Check your downloads.')).toBeVisible();
+  // Exports are mastered to −14 LUFS by default and report the result.
+  await expect(page.getByText(/Export ready\. Mastered to -1[34]\.\d LUFS/)).toBeVisible();
 });
 
 test('exports MIDI', async ({ studio: page }) => {

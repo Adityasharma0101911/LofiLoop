@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { buildSongTimeline } from '@/lib/audio/sequence';
 import { GENRES } from '@/lib/generate/genres';
 import { isInScale } from '@/lib/music/theory';
 import { INSTRUMENTS } from './instruments';
@@ -11,16 +12,25 @@ const activeSteps = (p: Project, pattern: Pattern) =>
 
 /** Musical content without random ids and timestamps. */
 function content(p: Project) {
+  const patternIndex = (id: string | null) => p.patterns.findIndex((pat) => pat.id === id);
+  const trackIndex = (id: string) => p.tracks.findIndex((t) => t.id === id);
   return {
     ...p,
     id: null,
     createdAt: null,
     updatedAt: null,
-    activePatternId: p.patterns.findIndex((pat) => pat.id === p.activePatternId),
+    activePatternId: patternIndex(p.activePatternId),
     arrangement: p.arrangement.map((s) => ({
       ...s,
       id: null,
-      patternId: p.patterns.findIndex((pat) => pat.id === s.patternId),
+      patternId: patternIndex(s.patternId),
+      fillPatternId: patternIndex(s.fillPatternId),
+      muted: s.muted.map(trackIndex),
+    })),
+    automation: p.automation.map((l) => ({
+      ...l,
+      id: null,
+      target: l.target.replace(/^track\.([^.]+)/, (_, id: string) => `track.${trackIndex(id)}`),
     })),
     meta: { ...p.meta, coverSeed: null },
     tracks: p.tracks.map((t) => ({ ...t, id: null })),
@@ -82,6 +92,22 @@ describe('templates', () => {
       const b = template.create();
       expect(a).not.toBe(b);
       expect(a.id).not.toBe(b.id);
+    }
+  });
+
+  it('includes full songs of about the advertised length', () => {
+    const songs = TEMPLATES.filter((t) => t.kind === 'song');
+    expect(songs.length).toBeGreaterThanOrEqual(6);
+    expect(TEMPLATES.filter((t) => t.kind === 'loop').length).toBeGreaterThanOrEqual(3);
+    for (const template of songs) {
+      const p = template.create();
+      expect(p.name).toBe(template.name);
+      expect(p.playMode).toBe('song');
+      expect(p.arrangement[0].kind).toBe('intro');
+      expect(p.arrangement[p.arrangement.length - 1].kind).toBe('outro');
+      expect(p.meta.styles[0]).toBe(template.genre);
+      const minutes = buildSongTimeline(p).totalSeconds / 60;
+      expect(Math.abs(minutes - template.minutes!)).toBeLessThan(0.2);
     }
   });
 

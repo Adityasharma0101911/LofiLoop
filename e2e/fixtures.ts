@@ -8,6 +8,12 @@ export const test = base.extend<{ studio: Page }>({
     page.on('console', (msg) => {
       if (msg.type() === 'error') problems.push(`console: ${msg.text()}`);
     });
+    // The guided tour opens on a first visit; tests that want it use a fresh page.
+    await page.addInitScript(() => {
+      const key = 'lofiloop:v2:prefs';
+      const prefs = JSON.parse(localStorage.getItem(key) ?? '{}');
+      localStorage.setItem(key, JSON.stringify({ ...prefs, tourSeen: true }));
+    });
     await page.goto('/');
     await expect(page.getByRole('grid', { name: /Pattern A steps/ })).toBeVisible();
     await provide(page);

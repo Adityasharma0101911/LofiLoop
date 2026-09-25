@@ -1,9 +1,11 @@
 /**
- * Starting points for new projects: a blank kit, the hand-made demo and
- * generated beats per genre (fixed seeds, so they are always the same).
+ * Starting points for new projects: a blank kit, the hand-made demo, full
+ * generated songs and two-pattern loops per genre (fixed seeds, so they are
+ * always the same).
  */
 import { generateBeat } from '@/lib/generate/generators';
 import { GENRES, type GenreId } from '@/lib/generate/genres';
+import { generateSong, type SongOptions } from '@/lib/generate/song';
 import {
   createPattern,
   createProject,
@@ -16,11 +18,17 @@ import {
 import type { InstrumentId } from './instruments';
 import type { Project, Step, Track } from './types';
 
+export type TemplateKind = 'blank' | 'demo' | 'song' | 'loop';
+
 export interface ProjectTemplate {
   id: string;
   name: string;
   description: string;
   genre: GenreId | null;
+  /** blank kit, hand-made demo, arranged song or two-pattern loop */
+  kind: TemplateKind;
+  /** Approximate length for songs */
+  minutes?: number;
   create: () => Project;
 }
 
@@ -219,6 +227,121 @@ export function createDemoProject(): Project {
   return project;
 }
 
+/** Full songs from the song generator; seeds picked by eye so each is a good first impression. */
+const SONG_TEMPLATES: (Omit<ProjectTemplate, 'kind' | 'create' | 'genre'> & { options: SongOptions })[] = [
+  {
+    id: 'late-night-study',
+    name: 'Late Night Study',
+    description: 'A 2½ minute lofi song: dusty drums, jazzy keys and a music-box hook over soft vinyl.',
+    minutes: 2.5,
+    options: {
+      seed: 11,
+      styles: [{ genre: 'lofi', weight: 1 }],
+      minutes: 2.5,
+      mood: { valence: 0.4, energy: 0.35, brightness: 0.35 },
+      ambience: 'vinyl',
+    },
+  },
+  {
+    id: 'rainy-commute',
+    name: 'Rainy Commute',
+    description: 'Lofi blended with jazz hop: walking bass, ninth chords, a bell and lead in conversation, and rain.',
+    minutes: 2.5,
+    options: {
+      seed: 4,
+      styles: [
+        { genre: 'lofi', weight: 0.6 },
+        { genre: 'jazzhop', weight: 0.4 },
+      ],
+      minutes: 2.5,
+      mood: { valence: 0.35, energy: 0.4, brightness: 0.35 },
+      ambience: 'rain',
+    },
+  },
+  {
+    id: 'sunday-cafe',
+    name: 'Sunday Café',
+    description:
+      'Warm jazz hop: walking bass, ninth chords and a flute trading phrases with a soft lead in a busy café.',
+    minutes: 2.5,
+    options: {
+      seed: 8,
+      styles: [{ genre: 'jazzhop', weight: 1 }],
+      minutes: 2.5,
+      mood: { valence: 0.68, energy: 0.45, brightness: 0.5 },
+      instruments: ['flute'],
+      ambience: 'cafe',
+    },
+  },
+  {
+    id: 'neon-drive',
+    name: 'Neon Drive',
+    description: 'Deep house with a chillhop bounce: filtered builds, risers, drops and a sidechained bass.',
+    minutes: 3,
+    options: {
+      seed: 2,
+      styles: [
+        { genre: 'house', weight: 0.55 },
+        { genre: 'chillhop', weight: 0.45 },
+      ],
+      minutes: 3,
+      mood: { valence: 0.7, energy: 0.7, brightness: 0.75 },
+      ambience: 'city',
+    },
+  },
+  {
+    id: 'night-shift',
+    name: 'Night Shift',
+    description: 'Dark trap: half-time drums, rolling hats, gliding 808s and a bell hook.',
+    minutes: 2.5,
+    options: {
+      seed: 3,
+      styles: [{ genre: 'trap', weight: 1 }],
+      minutes: 2.5,
+      mood: { valence: 0.2, energy: 0.7, brightness: 0.6 },
+    },
+  },
+  {
+    id: 'velvet-hour',
+    name: 'Velvet Hour',
+    description: 'Neo-soul R&B with lush ninth chords, strings in the hooks and a key lift at the end.',
+    minutes: 2.5,
+    options: {
+      seed: 6,
+      styles: [{ genre: 'rnb', weight: 1 }],
+      minutes: 2.5,
+      mood: { valence: 0.62, energy: 0.45, brightness: 0.55 },
+      instruments: ['strings'],
+    },
+  },
+  {
+    id: 'crate-digger',
+    name: 'Crate Digger',
+    description: 'Head-nod 90s boom bap with punchy drums, a plucked hook and street noise.',
+    minutes: 2.5,
+    options: {
+      seed: 9,
+      styles: [{ genre: 'boombap', weight: 1 }],
+      minutes: 2.5,
+      mood: { valence: 0.35, energy: 0.6, brightness: 0.3 },
+      ambience: 'city',
+    },
+  },
+  {
+    id: 'slow-tides',
+    name: 'Slow Tides',
+    description: 'Three minutes of slow ambient: evolving pads, music box and night air.',
+    minutes: 3,
+    options: {
+      seed: 2,
+      styles: [{ genre: 'ambient', weight: 1 }],
+      minutes: 3,
+      mood: { valence: 0.55, energy: 0.15, brightness: 0.45 },
+      ambience: 'night',
+    },
+  },
+];
+
 /** Fixed seeds picked by ear/eye so each genre template is a good first impression. */
 const GENRE_TEMPLATES: [GenreId, number][] = [
   ['lofi', 6],
@@ -237,6 +360,7 @@ export const TEMPLATES: ProjectTemplate[] = [
     name: 'Blank',
     description: 'An empty beat with kick, snare, hat, keys and bass.',
     genre: null,
+    kind: 'blank',
     create: () => createProject({ name: 'Untitled beat' }),
   },
   {
@@ -244,13 +368,21 @@ export const TEMPLATES: ProjectTemplate[] = [
     name: 'Midnight Tape',
     description: 'Hand-made lofi demo: jazzy seventh chords, lazy swung drums and a music-box melody.',
     genre: 'lofi',
+    kind: 'demo',
     create: createDemoProject,
   },
+  ...SONG_TEMPLATES.map(({ options, ...template }): ProjectTemplate => ({
+    ...template,
+    genre: options.styles[0].genre,
+    kind: 'song',
+    create: () => generateSong({ ...options, name: template.name }),
+  })),
   ...GENRE_TEMPLATES.map(([genre, seed]): ProjectTemplate => ({
     id: genre,
     name: GENRES[genre].name,
     description: GENRES[genre].description,
     genre,
+    kind: 'loop',
     create: () => generateBeat(genre, { seed }),
   })),
 ];

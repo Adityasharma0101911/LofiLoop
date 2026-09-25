@@ -29,6 +29,7 @@ export function Inspector() {
 
   return (
     <section
+      data-tour="inspector"
       aria-label={`${track.name} inspector`}
       className={cn(
         'border-line bg-surface flex shrink-0 flex-col border-t transition-[height] duration-200',

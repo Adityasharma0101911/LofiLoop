@@ -19,6 +19,9 @@ import { GENRE_IDS, GENRE_LIST, GENRES, isGenreId, parseGroovePart, type GenreId
 import {
   beatName,
   chordSpan,
+  chordStepsWithRhythm,
+  coverSeed,
+  drumStepsFromGroove,
   generateBassSteps,
   generateBeat,
   generateChordSteps,
@@ -426,6 +429,37 @@ describe('regeneratePattern', () => {
   it('returns nothing for an unknown pattern', () => {
     const p = generateBeat('trap', { seed: 1 });
     expect(regeneratePattern(p, 'nope', 'trap', { seed: 1 })).toEqual({});
+  });
+});
+
+describe('building blocks', () => {
+  it('drumStepsFromGroove can leave the fill out', () => {
+    const genre = GENRES.lofi;
+    for (let seed = 1; seed <= 8; seed++) {
+      const steps = drumStepsFromGroove(genre.grooves[0], genre, 'snare', ctx(seed), { fill: false });
+      const template = parseGroovePart(genre.grooves[0].parts.snare!);
+      // No fill: the last beat only has groove hits (plus the odd random ghost).
+      for (let i = 28; i < 32; i++)
+        if (steps[i].on && steps[i].vel > 0.4) expect(template[i % template.length]).not.toBeNull();
+    }
+  });
+
+  it('chordStepsWithRhythm uses the given rhythm', () => {
+    const track = trackFor('keys');
+    const progression = generateProgression('lofi', ctx(1, { length: 32 }));
+    const steps = chordStepsWithRhythm(track, ctx(1), progression, { hits: [0, 8], push: 0, gate: 2 });
+    const on = onIndices(steps);
+    expect(on.every((i) => i % 8 === 0)).toBe(true);
+    expect(steps.filter((s) => s.on).every((s) => s.len <= 2)).toBe(true);
+  });
+
+  it('generateBeat records its style and cover seed', () => {
+    const p = generateBeat('house', { seed: 12345 });
+    expect(p.meta.styles).toEqual(['house']);
+    expect(p.meta.coverSeed).toBe(12345);
+    expect(coverSeed(-7.5)).toBe(7);
+    expect(coverSeed(Number.NaN)).toBe(0);
+    expect(coverSeed(2 ** 31 + 3)).toBe(3);
   });
 });
 

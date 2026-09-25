@@ -16,6 +16,7 @@ export interface SegmentedProps<T extends string> {
   label: string;
   size?: 'xs' | 'sm';
   className?: string;
+  'data-tour'?: string;
 }
 
 export function Segmented<T extends string>({
@@ -25,10 +26,16 @@ export function Segmented<T extends string>({
   label,
   size = 'sm',
   className,
+  'data-tour': tour,
 }: SegmentedProps<T>) {
   const name = useId();
   return (
-    <div role="radiogroup" aria-label={label} className={cn('bg-surface-3/70 inline-flex rounded-lg p-0.5', className)}>
+    <div
+      role="radiogroup"
+      aria-label={label}
+      data-tour={tour}
+      className={cn('bg-surface-3/70 inline-flex rounded-lg p-0.5', className)}
+    >
       {options.map((opt) => {
         const selected = opt.value === value;
         return (

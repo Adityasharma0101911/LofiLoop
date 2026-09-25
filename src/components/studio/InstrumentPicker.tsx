@@ -36,7 +36,7 @@ export function InstrumentBadge({
   );
 }
 
-const ORDER: InstrumentCategory[] = ['drums', 'bass', 'keys', 'synth'];
+const ORDER: InstrumentCategory[] = ['drums', 'bass', 'keys', 'band', 'synth', 'fx', 'sampler'];
 
 export function InstrumentPicker({
   value,
@@ -48,7 +48,7 @@ export function InstrumentPicker({
   disabled?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="-mr-2 flex max-h-[min(64vh,520px)] flex-col gap-3 overflow-y-auto overscroll-contain pr-2">
       {ORDER.map((category) => (
         <section key={category}>
           <h3 className="text-fg-subtle mb-1.5 text-[10px] font-semibold tracking-widest uppercase">

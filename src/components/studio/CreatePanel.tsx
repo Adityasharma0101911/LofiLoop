@@ -31,7 +31,7 @@ import { scaleNotes } from '@/lib/music/theory';
 import { INSTRUMENTS } from '@/lib/project/instruments';
 import { rootNoteFor } from '@/lib/project/factory';
 import type { Step } from '@/lib/project/types';
-import { loadProject } from '@/lib/store/persistence';
+import { loadProject } from '@/lib/storage/library';
 import { actions, getProject, selectActivePattern, useStudio } from '@/lib/store/studio';
 import { ui, useUi } from '@/lib/store/ui';
 import { Button } from '@/components/ui/Button';
@@ -39,6 +39,7 @@ import { Fader } from '@/components/ui/Fader';
 import { cn } from '@/lib/utils/cn';
 import { saveNow } from './bootstrap';
 import { InstrumentBadge } from './InstrumentPicker';
+import { SongGenerator } from './SongGenerator';
 
 function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
   return (
@@ -65,15 +66,14 @@ export function CreatePanel() {
 
   const newBeat = () => {
     const previous = getProject();
-    saveNow();
+    void saveNow();
     const project = generateBeat(genre, { seed: randomSeed() });
     actions.load(project);
     ui.selectTrack(project.tracks[0]?.id ?? null);
     ui.toast(`New ${g.name.toLowerCase()} beat: “${project.name}”`, 'success', {
       label: 'Go back',
       run: () => {
-        const restored = loadProject(previous.id);
-        if (restored) actions.load(restored);
+        void loadProject(previous.id).then((restored) => restored && actions.load(restored));
       },
     });
   };
@@ -116,7 +116,8 @@ export function CreatePanel() {
 
   return (
     <div className="flex flex-col gap-3 p-3">
-      <Section title="Style" hint={g.description}>
+      <SongGenerator />
+      <Section title="Loops" hint={g.description}>
         <div className="flex flex-wrap gap-1">
           {GENRE_LIST.map((item) => (
             <button
@@ -135,8 +136,8 @@ export function CreatePanel() {
           ))}
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <Button variant="primary" size="sm" icon={<Sparkles />} onClick={newBeat}>
-            New beat
+          <Button size="sm" icon={<Sparkles />} onClick={newBeat}>
+            New loop
           </Button>
           <Button
             size="sm"
@@ -148,7 +149,8 @@ export function CreatePanel() {
           </Button>
         </div>
         <p className="text-fg-subtle mt-2 text-[11px]">
-          New beat opens a fresh project (your current one stays in the library). Fill only rewrites unlocked tracks.
+          New loop opens a fresh one-pattern beat (your current one stays in the library). Fill only rewrites unlocked
+          tracks.
         </p>
         <ul className="mt-2 flex flex-wrap gap-1" aria-label="Keep tracks when filling">
           {tracks.map((t) => {

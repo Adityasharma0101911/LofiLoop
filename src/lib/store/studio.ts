@@ -79,6 +79,8 @@ interface StudioState {
   travel: (steps: number) => void;
   /** Replace the whole project (open, import, template). Clears history. */
   load: (project: Project) => void;
+  /** Swap in new contents for the open project as one undoable step (restore a version, generate a song). */
+  replace: (project: Project, label: string) => void;
 }
 
 export const useStudio = create<StudioState>()((set, get) => ({
@@ -102,7 +104,9 @@ export const useStudio = create<StudioState>()((set, get) => ({
       draft.updatedAt = Date.now();
     });
     const now = Date.now();
-    const merge = options.coalesce !== undefined && options.coalesce === coalesceKey && now - coalesceAt < COALESCE_MS;
+    // A recording take stays one undo step however long the pauses between notes are.
+    const window = options.coalesce?.startsWith('record:') ? Infinity : COALESCE_MS;
+    const merge = options.coalesce !== undefined && options.coalesce === coalesceKey && now - coalesceAt < window;
     set({
       project: stamped,
       past: merge ? past : [...past, { project, label: options.label ?? 'Edit', at: now }].slice(-HISTORY_LIMIT),
@@ -145,6 +149,17 @@ export const useStudio = create<StudioState>()((set, get) => ({
   },
 
   load: (project) => set({ project, past: [], future: [], coalesceKey: null }),
+
+  replace: (next, label) => {
+    const { project, past } = get();
+    const now = Date.now();
+    set({
+      project: { ...next, id: project.id, createdAt: project.createdAt, updatedAt: now },
+      past: [...past, { project, label, at: now }].slice(-HISTORY_LIMIT),
+      future: [],
+      coalesceKey: null,
+    });
+  },
 }));
 
 /** Undo shouldn't yank the view to another pattern unless the pattern no longer exists. */
@@ -208,6 +223,7 @@ export const actions = {
   redo: () => useStudio.getState().redo(),
   travel: (steps: number) => useStudio.getState().travel(steps),
   load: (project: Project) => useStudio.getState().load(project),
+  replace: (project: Project, label: string) => useStudio.getState().replace(project, label),
 
   // --- project settings ---
   setName: (name: string) =>

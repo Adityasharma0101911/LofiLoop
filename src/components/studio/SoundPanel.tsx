@@ -13,7 +13,9 @@ import { Popover } from '@/components/ui/Popover';
 import { Segmented } from '@/components/ui/Segmented';
 import { formatPan, formatParam } from '@/lib/utils/params';
 import { formatPercent } from '@/lib/utils/format';
+import { expMap } from '@/lib/utils/math';
 import { InstrumentBadge, InstrumentPicker } from './InstrumentPicker';
+import { SamplePanel } from './SamplePanel';
 
 const CHORDS: { value: ChordType; label: string; title: string }[] = [
   { value: 'off', label: 'Single', title: 'Play single notes' },
@@ -38,6 +40,7 @@ export function SoundPanel({ track }: { track: Track }) {
 
   return (
     <div className="flex flex-wrap items-start gap-x-8 gap-y-4 p-4">
+      {def.sampler && <SamplePanel track={track} />}
       <Section title="Instrument" className="w-full sm:w-52">
         <button
           type="button"
@@ -136,6 +139,100 @@ export function SoundPanel({ track }: { track: Track }) {
             defaultValue={0}
             format={formatPercent}
             onChange={(v) => actions.updateTrack(track.id, { delay: v })}
+          />
+          <Knob
+            label="Duck"
+            value={track.duck}
+            min={0}
+            max={1}
+            defaultValue={0}
+            format={formatPercent}
+            onChange={(v) => actions.updateTrack(track.id, { duck: v })}
+          />
+        </div>
+      </Section>
+
+      <Section title="Effects">
+        <div className="flex flex-wrap gap-3">
+          <Knob
+            label="Filter"
+            value={track.fx.cutoff}
+            min={0}
+            max={1}
+            defaultValue={1}
+            format={(v) => (v >= 0.999 ? 'Open' : `${Math.round(expMap(v, 120, 20000))} Hz`)}
+            onChange={(v) => actions.setTrackFx(track.id, { cutoff: v })}
+          />
+          <Knob
+            label="Reso"
+            value={track.fx.resonance}
+            min={0}
+            max={1}
+            defaultValue={0.1}
+            format={formatPercent}
+            onChange={(v) => actions.setTrackFx(track.id, { resonance: v })}
+          />
+          <Knob
+            label="Low cut"
+            value={track.fx.highpass}
+            min={0}
+            max={1}
+            defaultValue={0}
+            format={(v) => (v <= 0.001 ? 'Off' : `${Math.round(20 * Math.pow(2, v * 9))} Hz`)}
+            onChange={(v) => actions.setTrackFx(track.id, { highpass: v })}
+          />
+          <Knob
+            label="Drive"
+            value={track.fx.drive}
+            min={0}
+            max={1}
+            defaultValue={0}
+            format={formatPercent}
+            onChange={(v) => actions.setTrackFx(track.id, { drive: v })}
+          />
+          <Knob
+            label="Crush"
+            value={track.fx.crush}
+            min={0}
+            max={1}
+            defaultValue={0}
+            format={(v) => (v < 0.01 ? 'Off' : `${Math.round(12 - v * 9)} bit`)}
+            onChange={(v) => actions.setTrackFx(track.id, { crush: v })}
+          />
+          <Knob
+            label="Chorus"
+            value={track.fx.chorus}
+            min={0}
+            max={1}
+            defaultValue={0}
+            format={formatPercent}
+            onChange={(v) => actions.setTrackFx(track.id, { chorus: v })}
+          />
+        </div>
+      </Section>
+
+      <Section title="Feel">
+        <div className="flex flex-wrap gap-3">
+          <Knob
+            label="Timing"
+            value={track.feel}
+            min={-1}
+            max={1}
+            defaultValue={0}
+            bipolar
+            format={(v) =>
+              Math.abs(v) < 0.02 ? 'On grid' : `${v > 0 ? 'Late' : 'Early'} ${Math.round(Math.abs(v) * 30)} ms`
+            }
+            onChange={(v) => actions.updateTrack(track.id, { feel: v })}
+          />
+          <Knob
+            label="Humanize"
+            value={track.humanize}
+            min={0}
+            max={1}
+            defaultValue={0}
+            format={formatPercent}
+            onChange={(v) => actions.updateTrack(track.id, { humanize: v })}
           />
         </div>
       </Section>

@@ -1,6 +1,9 @@
 'use client';
 
-import { DELAY_DIVISIONS, type MasterFx } from '@/lib/project/types';
+import { AMBIENCE_TYPES, DELAY_DIVISIONS, type MasterFx } from '@/lib/project/types';
+import { AMBIENCE_LABELS } from '@/lib/audio/ambience';
+import { Select } from '@/components/ui/Select';
+import { LoudnessMeter } from './LoudnessMeter';
 import { actions, useStudio } from '@/lib/store/studio';
 import { Knob } from '@/components/ui/Knob';
 import { Segmented } from '@/components/ui/Segmented';
@@ -31,6 +34,9 @@ const PRESETS: { name: string; fx: Partial<MasterFx> }[] = [
 export function FxPanel() {
   const fx = useStudio((s) => s.project.fx);
   const volume = useStudio((s) => s.project.volume);
+  const ambience = useStudio((s) => s.project.ambience);
+  const sidechain = useStudio((s) => s.project.sidechain);
+  const tracks = useStudio((s) => s.project.tracks);
   const set = (patch: Partial<MasterFx>) => actions.setFx(patch);
   const d = defaultFx();
 
@@ -151,16 +157,70 @@ export function FxPanel() {
           />
         </div>
       </Card>
+      <Card title="Atmosphere" subtitle="A bed of sound under the music, plus sidechain pumping">
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap gap-1">
+            {AMBIENCE_TYPES.map((type) => (
+              <Button
+                key={type}
+                size="xs"
+                variant={ambience.type === type ? 'primary' : 'outline'}
+                onClick={() => actions.setAmbience({ type })}
+              >
+                {AMBIENCE_LABELS[type]}
+              </Button>
+            ))}
+          </div>
+          <div className="flex items-end gap-4">
+            <Knob
+              label="Level"
+              value={ambience.level}
+              min={0}
+              max={1}
+              defaultValue={0.4}
+              disabled={ambience.type === 'none'}
+              format={formatPercent}
+              onChange={(v) => actions.setAmbience({ level: v })}
+            />
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <label
+                htmlFor="sidechain-source"
+                className="text-fg-subtle text-[10px] font-semibold tracking-widest uppercase"
+              >
+                Ducking follows
+              </label>
+              <Select
+                id="sidechain-source"
+                value={sidechain ?? ''}
+                onChange={(e) => actions.setSidechain(e.target.value || null)}
+              >
+                <option value="">First kick (auto)</option>
+                {tracks.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </Select>
+              <p className="text-fg-subtle text-[11px]">Set “Duck” on a track’s Mix knobs to make it pump.</p>
+            </div>
+          </div>
+        </div>
+      </Card>
       <Card title="Master" subtitle="Output level after the safety limiter">
-        <Knob
-          label="Volume"
-          value={volume}
-          min={0}
-          max={1}
-          defaultValue={0.8}
-          format={formatPercent}
-          onChange={actions.setVolume}
-        />
+        <div className="flex items-start gap-4">
+          <Knob
+            label="Volume"
+            value={volume}
+            min={0}
+            max={1}
+            defaultValue={0.8}
+            format={formatPercent}
+            onChange={actions.setVolume}
+          />
+          <div className="min-w-0 flex-1">
+            <LoudnessMeter />
+          </div>
+        </div>
       </Card>
     </div>
   );

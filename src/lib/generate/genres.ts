@@ -157,6 +157,24 @@ export const GENRES: Record<GenreId, Genre> = {
           openhat: '..............o. | ................',
         },
       },
+      {
+        name: 'Tape',
+        parts: {
+          kick: 'X.......x.x..... | X......x..x.....',
+          snare: '....X.......X... | ....X..g....X.g.',
+          hat: 'x.o.x.o.x.o.x.oo',
+          openhat: '................ | ..........o.....',
+        },
+      },
+      {
+        name: 'Head nod',
+        parts: {
+          kick: 'X..x......x..... | X..x....x.x.....',
+          snare: '....X...g...X... | ....X...g...X..?',
+          hat: 'x.x.x.x.x.x.x.x.',
+          openhat: '..............o. | ................',
+        },
+      },
     ],
     drums: { ghosts: 0.5, rolls: 0, fill: 'snare' },
     progressions: [
@@ -232,6 +250,24 @@ export const GENRES: Record<GenreId, Genre> = {
           snare: '....X.......X... | ....X..g....X..g',
           hat: 'x.oox.o.x.oox.o.',
           rim: '..g.......g.....',
+        },
+      },
+      {
+        name: 'Ride',
+        parts: {
+          kick: 'X.....x.......x. | X.........x.....',
+          snare: '....X..g....X.g. | ....X....g..X..g',
+          hat: 'X...x..xX...x..x',
+          rim: '..g.......g..... | ..g.......g...g.',
+        },
+      },
+      {
+        name: 'Smoky',
+        parts: {
+          kick: 'X......x..x..... | X.x.......x.....',
+          snare: '....X.......X..g | ....X..g.g..X...',
+          hat: 'x.oxx.oxx.oxx.ox',
+          rim: '......g.......g. | ......g.........',
         },
       },
     ],
@@ -310,6 +346,24 @@ export const GENRES: Record<GenreId, Genre> = {
           openhat: '......o......... | ................',
         },
       },
+      {
+        name: 'Crate',
+        parts: {
+          kick: 'X.x.......x...x. | X.........x.x...',
+          snare: '....X.......X... | ....X.....g.X...',
+          hat: 'x.x.x.x.x.x.x.x.',
+          openhat: '......o......... | ..............o.',
+        },
+      },
+      {
+        name: 'Shuffle',
+        parts: {
+          kick: 'X......x.x...... | X..x......x.....',
+          snare: '....X..g....X..g | ....X..g....X.gg',
+          hat: 'x.oxx.oxx.oxx.ox',
+          openhat: '................ | ..........o.....',
+        },
+      },
     ],
     drums: { ghosts: 0.4, rolls: 0, fill: 'snare' },
     progressions: [
@@ -381,6 +435,24 @@ export const GENRES: Record<GenreId, Genre> = {
           snare: '....X.......X..g',
           hat: 'x.o.x.o.x.oox.o.',
           shaker: 'gogogogogogogogo',
+        },
+      },
+      {
+        name: 'Skip',
+        parts: {
+          kick: 'X.....x.x.....x. | X.....x...x.....',
+          snare: '....X.......X... | ....X..g....X...',
+          hat: 'x.xox.xox.xox.xo',
+          shaker: 'g.g.o.g.g.g.o.g.',
+        },
+      },
+      {
+        name: 'Stroll',
+        parts: {
+          kick: 'X.........x.x... | X......x..x.....',
+          snare: '....X......gX... | ....X.......X..g',
+          hat: 'x.o.x.oxx.o.x.ox',
+          shaker: '..g.o.g...g.o.g.',
         },
       },
     ],
@@ -465,6 +537,26 @@ export const GENRES: Record<GenreId, Genre> = {
           openhat: '..............o. | ................',
         },
       },
+      {
+        name: 'Slide',
+        parts: {
+          kick: 'X......X........ | X.........X..X..',
+          snare: '........X....... | ........X.....x.',
+          clap: '........x.......',
+          hat: 'x..x..x.x..x..x. | x..x..x.x..x3.4.',
+          openhat: '................ | ....o...........',
+        },
+      },
+      {
+        name: 'Stomp',
+        parts: {
+          kick: 'X.....X...X..... | X..X......X...X.',
+          snare: '........X.......',
+          clap: '........x.......',
+          hat: 'xoxoxoxoxoxoxoxo | xoxoxoxo3.3.44..',
+          openhat: '..............o. | ................',
+        },
+      },
     ],
     drums: { ghosts: 0.05, rolls: 0.6, fill: 'roll' },
     progressions: [minor(1, 6), minor(1, 6, 4, 5), minor(1, 4, 6, 5), minor(1, 2), minor(1, 7, 6, 7), minor(6, 1)],
@@ -527,6 +619,24 @@ export const GENRES: Record<GenreId, Genre> = {
           snare: '....X.......X..g',
           hat: 'x.x.x.x.x.x.x.x.',
           rim: '.......o......o.',
+        },
+      },
+      {
+        name: 'Velvet',
+        parts: {
+          kick: 'X.......x..x.... | X......x.x......',
+          snare: '....X.......X... | ....X.......X.g.',
+          hat: 'x.x.x.xox.x.x.xo',
+          rim: '...o.......o.... | ...o............',
+        },
+      },
+      {
+        name: 'Sway',
+        parts: {
+          kick: 'X.....x...x..... | X..x..x.........',
+          snare: '....X..g....X... | ....X...g...X..g',
+          hat: 'x.oxx.o.x.oxx.o.',
+          rim: '..........o..... | ..o.......o.....',
         },
       },
     ],
@@ -606,6 +716,26 @@ export const GENRES: Record<GenreId, Genre> = {
           shaker: '...g...g...g...g',
         },
       },
+      {
+        name: 'Jack',
+        parts: {
+          kick: 'X...X...X...X...',
+          clap: '....X.......X...',
+          hat: 'xg.gxg.gxg.gxg.g',
+          openhat: '..x...x...x...x.',
+          shaker: '.g.g.g.g.g.g.g.g',
+        },
+      },
+      {
+        name: 'Tech',
+        parts: {
+          kick: 'X...X...X...X...',
+          clap: '....X.......X... | ....X.......X..x',
+          hat: 'x.x.x.x.x.x.x.x.',
+          openhat: '................ | ..o.......o.....',
+          shaker: 'g..gg..gg..gg..g',
+        },
+      },
     ],
     drums: { ghosts: 0.1, rolls: 0.1, fill: 'roll' },
     progressions: [
@@ -668,6 +798,14 @@ export const GENRES: Record<GenreId, Genre> = {
           kick: 'X.......x....... | X...............',
           rim: '....g.......o...',
           shaker: '..g...g...g...g.',
+        },
+      },
+      {
+        name: 'Pulse',
+        parts: {
+          kick: 'X............... | X.........x.....',
+          rim: '........g....... | ....g.......o...',
+          shaker: 'o...g...o...g...',
         },
       },
     ],

@@ -1,13 +1,27 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { Download, FolderOpen, HelpCircle, MoreHorizontal, Plus, Redo2, Share2, Undo2 } from 'lucide-react';
+import {
+  Bookmark,
+  Compass,
+  Download,
+  FolderOpen,
+  Gauge,
+  MoreHorizontal,
+  Plus,
+  Redo2,
+  Share2,
+  Undo2,
+} from 'lucide-react';
 import { SWING_MAX, SWING_MIN } from '@/lib/project/types';
 import { actions, useStudio } from '@/lib/store/studio';
 import { ui } from '@/lib/store/ui';
 import { Button, IconButton } from '@/components/ui/Button';
 import { DragNumber } from '@/components/ui/DragNumber';
 import { Popover } from '@/components/ui/Popover';
+import { HelpMenu } from './HelpMenu';
+import { HistoryMenu } from './HistoryMenu';
+import { startTour } from './Tour';
 import { KeyControl } from './KeyControl';
 import { Logo } from './Logo';
 import { ProjectName } from './ProjectName';
@@ -27,6 +41,7 @@ function History() {
       <IconButton label="Redo (Ctrl/⌘ Shift Z)" disabled={!canRedo} onClick={actions.redo}>
         <Redo2 />
       </IconButton>
+      <HistoryMenu />
     </div>
   );
 }
@@ -46,6 +61,33 @@ function SwingControl() {
     />
   );
 }
+
+const NAV = [
+  { id: 'new', label: 'New beat', icon: Plus, run: () => ui.openDialog('new') },
+  {
+    id: 'library',
+    label: 'Library (Ctrl/⌘ O)',
+    short: 'Library',
+    icon: FolderOpen,
+    run: () => ui.openDialog('library'),
+  },
+  { id: 'discover', label: 'Discover & radio', icon: Compass, run: () => ui.openDialog('discover') },
+  {
+    id: 'versions',
+    label: 'Versions & A/B compare',
+    short: 'Versions',
+    icon: Bookmark,
+    run: () => ui.openDialog('versions'),
+  },
+  { id: 'share', label: 'Share link', icon: Share2, run: () => ui.openDialog('share') },
+  {
+    id: 'perform',
+    label: 'Performance mode',
+    short: 'Perform',
+    icon: Gauge,
+    run: () => ui.set({ performance: true }),
+  },
+] as const;
 
 function MobileMenu() {
   const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
@@ -73,24 +115,13 @@ function MobileMenu() {
             <SwingControl />
             <KeyControl />
           </div>
-          <Button variant="ghost" className="justify-start" icon={<Plus />} onClick={run(() => ui.openDialog('new'))}>
-            New beat
-          </Button>
-          <Button
-            variant="ghost"
-            className="justify-start"
-            icon={<FolderOpen />}
-            onClick={run(() => ui.openDialog('library'))}
-          >
-            Library
-          </Button>
-          <Button
-            variant="ghost"
-            className="justify-start"
-            icon={<Share2 />}
-            onClick={run(() => ui.openDialog('share'))}
-          >
-            Share link
+          {NAV.map(({ id, label, icon: Icon, run: action, ...rest }) => (
+            <Button key={id} variant="ghost" className="justify-start" icon={<Icon />} onClick={run(action)}>
+              {'short' in rest ? rest.short : label}
+            </Button>
+          ))}
+          <Button variant="ghost" className="justify-start" icon={<Compass />} onClick={run(startTour)}>
+            Take the tour
           </Button>
           <Button
             variant="ghost"
@@ -135,23 +166,18 @@ export function TopBar() {
       <div className="hidden items-center gap-1 md:flex">
         <History />
         <span className="bg-line mx-1 h-5 w-px" />
-        <IconButton label="New beat" onClick={() => ui.openDialog('new')}>
-          <Plus />
-        </IconButton>
-        <IconButton label="Library (Ctrl/⌘ O)" onClick={() => ui.openDialog('library')}>
-          <FolderOpen />
-        </IconButton>
-        <IconButton label="Share link" onClick={() => ui.openDialog('share')}>
-          <Share2 />
-        </IconButton>
+        {NAV.map(({ id, label, icon: Icon, run }) => (
+          <IconButton key={id} label={label} onClick={run} data-tour={id}>
+            <Icon />
+          </IconButton>
+        ))}
         <SettingsMenu />
-        <IconButton label="Keyboard shortcuts (?)" onClick={() => ui.openDialog('shortcuts')}>
-          <HelpCircle />
-        </IconButton>
+        <HelpMenu />
         <Button
           variant="primary"
           size="sm"
           className="ml-1"
+          data-tour="export"
           icon={<Download />}
           onClick={() => ui.openDialog('export')}
         >

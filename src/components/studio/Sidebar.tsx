@@ -30,6 +30,7 @@ export function Sidebar() {
       )}
       <aside
         aria-label="Side panel"
+        data-tour="sidebar"
         className={cn(
           'border-line bg-surface z-40 flex w-[min(340px,92vw)] shrink-0 flex-col border-l',
           'fixed inset-y-0 right-0 shadow-2xl transition-transform duration-200 lg:static lg:translate-x-0 lg:shadow-none',

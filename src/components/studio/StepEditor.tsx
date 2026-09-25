@@ -132,6 +132,24 @@ export function StepEditor({ target, track }: { target: StepEditorTarget; track:
             format={formatPercent}
           />
         </Row>
+        <Row
+          label="Timing"
+          value={
+            Math.abs(step.offset) < 0.01
+              ? 'On grid'
+              : `${step.offset > 0 ? 'Late' : 'Early'} ${Math.round(Math.abs(step.offset) * 100)}%`
+          }
+        >
+          <Fader
+            label="Timing"
+            value={step.offset}
+            min={-0.5}
+            max={0.5}
+            step={0.01}
+            defaultValue={0}
+            onChange={(v) => set({ offset: v }, 'offset')}
+          />
+        </Row>
         <Row label="Repeat">
           <Segmented
             label="Ratchet"
