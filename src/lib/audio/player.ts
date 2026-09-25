@@ -1,13 +1,16 @@
 /**
- * Turns NoteEvents into voices: applies track params, chord splitting,
- * monophonic retriggering with glide and hi-hat style choke groups.
- * Used by both the live engine and the offline renderer.
+ * Turns NoteEvents into voices: applies track params, chord splitting and
+ * strumming, monophonic retriggering with glide, hi-hat style choke groups and
+ * sample lookup. Used by both the live engine and the offline renderer.
  */
 import { INSTRUMENTS } from '@/lib/project/instruments';
 import type { Project, Track } from '@/lib/project/types';
-import { VOICES, type Voice } from './instruments';
+import { VOICES, type SampleVoiceData, type Voice } from './instruments';
 import type { Mixer } from './mixer';
 import type { NoteEvent } from './sequence';
+import { sampleBank } from './samples';
+
+const warned = new Set<string>();
 
 interface HeldVoice {
   voice: Voice;
@@ -24,18 +27,18 @@ export class VoicePlayer {
     private readonly mixer: Mixer,
   ) {}
 
-  trigger(project: Project, event: NoteEvent, track?: Track): void {
+  trigger(project: Project, event: NoteEvent, track?: Track): Voice[] {
     const t = track ?? project.tracks.find((tr) => tr.id === event.trackId);
-    if (!t) return;
+    if (!t) return [];
     const destination = this.mixer.input(t.id);
-    if (!destination) return;
-    this.play(t, event, destination);
+    if (!destination) return [];
+    return this.play(t, event, destination);
   }
 
-  /** Play a track's instrument outside the sequence, e.g. when auditioning a step. */
-  preview(track: Track, event: NoteEvent, destination?: AudioNode): void {
+  /** Play a track's instrument outside the sequence (auditioning, live keyboard). */
+  preview(track: Track, event: NoteEvent, destination?: AudioNode): Voice[] {
     const target = destination ?? this.mixer.input(track.id) ?? this.mixer.previewInput;
-    this.play(track, event, target);
+    return this.play(track, event, target);
   }
 
   /** Fade out everything that is still sounding (transport stop). */
@@ -46,14 +49,19 @@ export class VoicePlayer {
     this.chokes.clear();
   }
 
-  private play(track: Track, event: NoteEvent, destination: AudioNode) {
+  private play(track: Track, event: NoteEvent, destination: AudioNode): Voice[] {
     const def = INSTRUMENTS[track.instrument];
     const voiceFn = VOICES[track.instrument];
     const { time } = event;
 
-    if (def.chokeGroup) {
-      this.chokes.get(def.chokeGroup)?.stop(time);
+    let sample: SampleVoiceData | undefined;
+    if (def.sampler) {
+      const buffer = track.sample ? sampleBank.get(track.sample.id) : undefined;
+      if (!buffer || !track.sample) return [];
+      sample = { buffer, ref: track.sample };
     }
+
+    if (def.chokeGroup) this.chokes.get(def.chokeGroup)?.stop(time);
 
     let glideFrom: number | undefined;
     if (def.mono) {
@@ -64,27 +72,43 @@ export class VoicePlayer {
       }
     }
 
-    // Keep chords from clipping: scale by 1/sqrt(n).
-    const chordScale = 1 / Math.sqrt(event.notes.length);
+    // Keep chords from clipping: scale by 1/sqrt(n). Guitars strum their chords.
     const notes = def.mono ? event.notes.slice(0, 1) : event.notes;
-    for (const note of notes) {
-      const voice = voiceFn(
-        this.ctx,
-        destination,
-        {
-          time,
-          note,
-          velocity: event.velocity * (notes.length > 1 ? chordScale * 1.2 : 1),
-          duration: event.duration,
-          glideFrom,
-        },
-        track.params,
-      );
+    const chordScale = notes.length > 1 ? (1 / Math.sqrt(notes.length)) * 1.2 : 1;
+    const strum = notes.length > 1 ? (track.params.strum ?? 0) : 0;
+    const voices: Voice[] = [];
+    notes.forEach((note, i) => {
+      const at = time + i * strum;
+      let voice: Voice;
+      try {
+        voice = voiceFn(
+          this.ctx,
+          destination,
+          {
+            time: at,
+            note,
+            velocity: event.velocity * chordScale * (1 - i * strum * 2),
+            duration: Math.max(0.02, event.duration - i * strum),
+            glideFrom,
+            sample,
+          },
+          track.params,
+        );
+      } catch (error) {
+        // A broken voice must never stall the scheduler or an export; skip the note.
+        if (!warned.has(track.instrument)) {
+          warned.add(track.instrument);
+          console.warn(`LofiLoop: could not play ${track.instrument}`, error);
+        }
+        return;
+      }
+      voices.push(voice);
       this.active.push(voice);
       if (def.mono) this.mono.set(track.id, { voice, note });
       if (def.chokeGroup) this.chokes.set(def.chokeGroup, voice);
-    }
+    });
     this.prune(time);
+    return voices;
   }
 
   private prune(now: number) {

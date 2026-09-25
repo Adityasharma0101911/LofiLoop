@@ -1,6 +1,12 @@
 /** Building blocks shared by every voice. All helpers work on BaseAudioContext so they run offline too. */
+import type { SampleRef } from '@/lib/project/types';
 
 export const SILENCE = 0.0001;
+
+export interface SampleVoiceData {
+  buffer: AudioBuffer;
+  ref: SampleRef;
+}
 
 export interface VoiceInput {
   time: number;
@@ -11,13 +17,18 @@ export interface VoiceInput {
   duration: number;
   /** Previous note for monophonic glides */
   glideFrom?: number;
+  /** Decoded audio for the sampler instrument */
+  sample?: SampleVoiceData;
 }
 
 export interface Voice {
   /** Time the voice falls silent on its own */
   end: number;
-  /** Fade out quickly from `time` (choke groups, mono retrigger, transport stop). */
-  stop(time: number): void;
+  /**
+   * Fade out from `time` over `fade` seconds (default 12 ms): choke groups,
+   * mono retrigger, transport stop and releasing held live notes.
+   */
+  stop(time: number, fade?: number): void;
 }
 
 export type VoiceParams = Record<string, number>;
@@ -77,14 +88,16 @@ export class VoiceBuilder {
     const end = this.end;
     return {
       end,
-      stop: (time: number) => {
+      stop: (time: number, fade = 0.012) => {
         const t = Math.max(time, start);
         if (t >= end) return;
+        choke.gain.cancelScheduledValues(t);
         choke.gain.setValueAtTime(1, t);
-        choke.gain.linearRampToValueAtTime(0, t + 0.012);
+        if (fade > 0.05) choke.gain.setTargetAtTime(0, t, fade / 4);
+        else choke.gain.linearRampToValueAtTime(0, t + fade);
         for (const s of sources) {
           try {
-            s.stop(t + 0.015);
+            s.stop(t + (fade > 0.05 ? fade * 1.5 : fade + 0.003));
           } catch {
             // Some engines reject a second stop(); the fade above already silences the voice.
           }

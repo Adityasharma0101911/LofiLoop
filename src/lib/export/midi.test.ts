@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildChord } from '@/lib/music/theory';
-import { createPattern, createProject, createTrack } from '@/lib/project/factory';
+import { createSection, createPattern, createProject, createTrack } from '@/lib/project/factory';
 import type { Project, Step } from '@/lib/project/types';
 import { exportMidi, midiBlob } from './midi';
 
@@ -216,13 +216,13 @@ describe('exportMidi', () => {
     ).toEqual([240, 510, 540, 570, 630]);
   });
 
-  it('follows the song chain in song mode', () => {
+  it('follows the song sections in song mode', () => {
     const tracks = [createTrack('kick', { name: 'Kick' })];
     const project = createProject({ tracks, swing: 50 });
     const b = createPattern('B', tracks, 0, 8);
     b.steps[tracks[0].id][0].on = true;
     project.patterns.push(b);
-    project.chain = [project.patterns[0].id, b.id, b.id];
+    project.arrangement = [createSection(project.patterns[0].id), createSection(b.id, { repeats: 2 })];
     turnOn(project, 0, [0]);
     const kick = parseSmf(exportMidi(project, { mode: 'song' })).tracks[1];
     expect(noteOns(kick).map((e) => e.tick)).toEqual([0, 1920, 1920 + 960]);

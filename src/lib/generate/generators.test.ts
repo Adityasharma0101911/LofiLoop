@@ -80,7 +80,7 @@ function musicalContent(p: Project) {
     fx: p.fx,
     tracks: p.tracks.map((t) => [t.instrument, t.volume, t.pan, t.reverb, t.delay, t.chord, t.params]),
     patterns: p.patterns.map((pat) => [pat.name, pat.length, p.tracks.map((t) => pat.steps[t.id])]),
-    chain: p.chain.map((id) => patternIndex.get(id)),
+    arrangement: p.arrangement.map((s) => [s.name, patternIndex.get(s.patternId), s.repeats]),
     active: patternIndex.get(p.activePatternId),
   };
 }
@@ -305,7 +305,11 @@ describe('generateBeat', () => {
       expect(g.scales).toContain(p.scale);
       expect(p.patterns.map((pat) => pat.name)).toEqual(['A', 'B']);
       const ids = p.patterns.map((pat) => pat.id);
-      expect(p.chain).toEqual([ids[0], ids[0], ids[1], ids[0]]);
+      expect(p.arrangement.map((s) => [s.patternId, s.repeats])).toEqual([
+        [ids[0], 2],
+        [ids[1], 1],
+        [ids[0], 1],
+      ]);
       expect(ids).toContain(p.activePatternId);
       expect(p.name.split(' ')).toHaveLength(2);
 

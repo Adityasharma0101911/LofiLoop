@@ -1,9 +1,10 @@
-/** Offline (faster than realtime) rendering through the exact same mixer and voices as playback. */
+/** Offline (faster than realtime) rendering through the exact same mixer, voices and performer as playback. */
 import { createRng } from '@/lib/music/rng';
 import type { Project, Track } from '@/lib/project/types';
 import { Mixer } from './mixer';
+import { Performer } from './performer';
 import { VoicePlayer } from './player';
-import { collectEvents, renderSlots, slotsDuration, type NoteEvent } from './sequence';
+import { renderTimeline, stepDuration, type SongTimeline } from './sequence';
 
 export type RenderMode = 'pattern' | 'song';
 
@@ -25,38 +26,62 @@ const TAIL_SECONDS = 3;
 const WINDOW_SECONDS = 4;
 
 export function renderLength(project: Project, mode: RenderMode, repeats: number, tail = true): number {
-  const slots = renderSlots(project, mode, repeats);
-  return LEAD_IN + slotsDuration(project, slots) + (tail ? TAIL_SECONDS : 0.05);
+  return LEAD_IN + renderTimeline(project, mode, repeats).totalSeconds + (tail ? TAIL_SECONDS : 0.05);
 }
 
 function throwIfAborted(signal?: AbortSignal) {
   if (signal?.aborted) throw new DOMException('Export cancelled', 'AbortError');
 }
 
-async function renderEvents(
-  project: Project,
-  events: NoteEvent[],
-  seconds: number,
-  sampleRate: number,
-  options: Pick<RenderOptions, 'onProgress' | 'signal'>,
-  crackle = true,
-): Promise<AudioBuffer> {
+interface PassOptions {
+  timeline: SongTimeline;
+  songMode: boolean;
+  seconds: number;
+  sampleRate: number;
+  seed: number;
+  /** Mix settings (a stem render mutes the other tracks here) */
+  mixProject: Project;
+  onlyTracks?: ReadonlySet<string>;
+  onProgress?: (progress: number) => void;
+  signal?: AbortSignal;
+}
+
+/** Walks every step of the timeline in order, like the realtime scheduler. */
+function* stepsOf(timeline: SongTimeline) {
+  for (const slot of timeline.slots) {
+    const dur = stepDuration(slot.bpm);
+    for (let i = 0; i < slot.pattern.length; i++) {
+      yield { slot, step: i, time: LEAD_IN + slot.startTime + i * dur };
+    }
+  }
+}
+
+async function renderPass(project: Project, options: PassOptions): Promise<AudioBuffer> {
   throwIfAborted(options.signal);
-  const frames = Math.ceil(seconds * sampleRate);
-  const ctx = new OfflineAudioContext(2, frames, sampleRate);
-  const mixProject = crackle ? project : { ...project, fx: { ...project.fx, crackle: 0 } };
+  const { seconds, sampleRate, timeline, songMode } = options;
+  const ctx = new OfflineAudioContext(2, Math.ceil(seconds * sampleRate), sampleRate);
   const mixer = new Mixer(ctx, ctx.destination, { realtime: false });
-  mixer.sync(mixProject);
+  mixer.sync(options.mixProject);
   mixer.setTransportActive(true, 0);
   const player = new VoicePlayer(ctx, mixer);
-  const trackMap = new Map(project.tracks.map((t) => [t.id, t]));
-  const sorted = [...events].sort((a, b) => a.time - b.time);
+  const performer = new Performer(mixer, player, { rng: createRng(options.seed), onlyTracks: options.onlyTracks });
 
-  let cursor = 0;
+  const steps = stepsOf(timeline);
+  let pending = steps.next();
   const scheduleUntil = (limit: number) => {
-    while (cursor < sorted.length && sorted[cursor].time < limit) {
-      const event = sorted[cursor++];
-      player.trigger(mixProject, event, trackMap.get(event.trackId));
+    while (!pending.done && pending.value.time < limit) {
+      const { slot, step, time } = pending.value;
+      if (step === 0 && songMode) performer.enterSlot(slot, time);
+      performer.playStep(project, {
+        pattern: slot.pattern,
+        step,
+        time,
+        bpm: slot.bpm,
+        transpose: slot.transpose,
+        muted: slot.muted,
+        songStep: songMode ? slot.startStep + step : null,
+      });
+      pending = steps.next();
     }
   };
 
@@ -70,12 +95,8 @@ async function renderEvents(
         .suspend(at)
         .then(() => {
           options.onProgress?.(Math.min(0.99, at / seconds));
-          if (options.signal?.aborted) {
-            // Stop scheduling; the render finishes quickly with silence and is discarded below.
-            cursor = sorted.length;
-          } else {
-            scheduleUntil(at + WINDOW_SECONDS);
-          }
+          // After a cancel, stop scheduling; the render finishes quickly and is discarded below.
+          if (!options.signal?.aborted) scheduleUntil(at + WINDOW_SECONDS);
           return ctx.resume();
         })
         .catch(() => undefined);
@@ -92,11 +113,17 @@ async function renderEvents(
 
 /** Render the full mix. */
 export async function renderMix(project: Project, options: RenderOptions): Promise<AudioBuffer> {
-  const sampleRate = options.sampleRate ?? 44100;
-  const slots = renderSlots(project, options.mode, options.repeats);
-  const events = collectEvents(project, slots, { rng: createRng(options.seed ?? 7) }, LEAD_IN);
-  const seconds = renderLength(project, options.mode, options.repeats, options.tail ?? true);
-  return renderEvents(project, events, seconds, sampleRate, options);
+  const timeline = renderTimeline(project, options.mode, options.repeats);
+  return renderPass(project, {
+    timeline,
+    songMode: options.mode === 'song',
+    seconds: renderLength(project, options.mode, options.repeats, options.tail ?? true),
+    sampleRate: options.sampleRate ?? 44100,
+    seed: options.seed ?? 7,
+    mixProject: project,
+    onProgress: options.onProgress,
+    signal: options.signal,
+  });
 }
 
 export interface Stem {
@@ -106,31 +133,32 @@ export interface Stem {
 
 /** Render every audible track on its own (with its sends), for mixing elsewhere. */
 export async function renderStems(project: Project, options: RenderOptions): Promise<Stem[]> {
-  const sampleRate = options.sampleRate ?? 44100;
-  const slots = renderSlots(project, options.mode, options.repeats);
+  const timeline = renderTimeline(project, options.mode, options.repeats);
   const seconds = renderLength(project, options.mode, options.repeats, options.tail ?? true);
   const anySolo = project.tracks.some((t) => t.solo);
   const tracks = project.tracks.filter((t) => !t.mute && (!anySolo || t.solo));
-  // Roll probabilities once for the whole mix so the stems sum to the same performance.
-  const allEvents = collectEvents(project, slots, { rng: createRng(options.seed ?? 7) }, LEAD_IN);
   const stems: Stem[] = [];
   for (let i = 0; i < tracks.length; i++) {
     const track = tracks[i];
-    const soloProject: Project = {
+    // Crackle and ambience belong to the master, not to any one stem.
+    const mixProject: Project = {
       ...project,
       tracks: project.tracks.map((t) => ({ ...t, mute: t.id !== track.id, solo: false })),
+      fx: { ...project.fx, crackle: 0 },
+      ambience: { ...project.ambience, type: 'none' },
     };
-    const buffer = await renderEvents(
-      soloProject,
-      allEvents.filter((e) => e.trackId === track.id),
+    const buffer = await renderPass(project, {
+      timeline,
+      songMode: options.mode === 'song',
       seconds,
-      sampleRate,
-      {
-        signal: options.signal,
-        onProgress: (p) => options.onProgress?.((i + p) / tracks.length),
-      },
-      false,
-    );
+      sampleRate: options.sampleRate ?? 44100,
+      // Same seed as the mix, so probability rolls match and the stems sum to the mix.
+      seed: options.seed ?? 7,
+      mixProject,
+      onlyTracks: new Set([track.id]),
+      signal: options.signal,
+      onProgress: (p) => options.onProgress?.((i + p) / tracks.length),
+    });
     stems.push({ track, buffer });
   }
   options.onProgress?.(1);

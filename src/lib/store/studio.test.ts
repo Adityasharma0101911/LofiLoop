@@ -70,7 +70,7 @@ describe('studio store', () => {
   it('adds, duplicates, moves and removes tracks across every pattern', () => {
     actions.addPattern();
     const id = actions.addTrack('snare')!;
-    for (const p of getProject().patterns) expect(p.steps[id]).toHaveLength(64);
+    for (const p of getProject().patterns) expect(p.steps[id]).toHaveLength(128);
     const copy = actions.duplicateTrack(id)!;
     expect(
       getProject()
@@ -84,24 +84,28 @@ describe('studio store', () => {
   });
 
   it('caps tracks and patterns', () => {
-    for (let i = 0; i < 20; i++) actions.addTrack('hat');
+    for (let i = 0; i < 30; i++) actions.addTrack('hat');
     expect(getProject().tracks).toHaveLength(MAX_TRACKS);
-    for (let i = 0; i < 12; i++) actions.addPattern();
+    for (let i = 0; i < 40; i++) actions.addPattern();
     expect(getProject().patterns).toHaveLength(MAX_PATTERNS);
-    expect(getProject().patterns.map((p) => p.name)).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']);
+    const names = getProject().patterns.map((p) => p.name);
+    expect(new Set(names).size).toBe(MAX_PATTERNS);
+    expect(names.slice(0, 3)).toEqual(['A', 'B', 'C']);
+    expect(names).toContain('Z');
+    expect(names).toContain('A2');
   });
 
-  it('duplicates patterns and keeps the chain valid on delete', () => {
+  it('duplicates patterns and keeps the arrangement valid on delete', () => {
     const kick = getProject().tracks[0].id;
     actions.toggleStep(kick, 0);
     const a = getProject().patterns[0].id;
     const b = actions.addPattern(a)!;
     expect(active().id).toBe(b);
     expect(active().steps[kick][0].on).toBe(true);
-    actions.appendToChain(b);
-    expect(getProject().chain).toEqual([a, b]);
+    actions.addSection({ patternId: b });
+    expect(getProject().arrangement.map((s) => s.patternId)).toEqual([a, b]);
     actions.removePattern(b);
-    expect(getProject().chain).toEqual([a]);
+    expect(getProject().arrangement.map((s) => s.patternId)).toEqual([a]);
     expect(getProject().activePatternId).toBe(a);
   });
 
@@ -148,5 +152,96 @@ describe('studio store', () => {
     actions.toggleSolo(a);
     actions.toggleSolo(b, true);
     expect(getProject().tracks.map((t) => t.solo)).toEqual([false, true, false]);
+  });
+});
+
+describe('song editing', () => {
+  beforeEach(() => {
+    fresh();
+  });
+
+  it('adds, edits, duplicates, moves and removes sections', () => {
+    const a = getProject().patterns[0].id;
+    const b = actions.addPattern()!;
+    const verse = actions.addSection({ patternId: b, kind: 'verse' })!;
+    actions.updateSection(verse, { repeats: 40, transpose: 30, bpm: 1, fillPatternId: a, exit: 'drop' });
+    const section = getProject().arrangement.find((s) => s.id === verse)!;
+    expect(section).toMatchObject({
+      name: 'Verse',
+      repeats: 16,
+      transpose: 12,
+      bpm: 40,
+      fillPatternId: a,
+      exit: 'drop',
+    });
+    const copy = actions.duplicateSection(verse)!;
+    expect(getProject().arrangement.map((s) => s.id)).toEqual([getProject().arrangement[0].id, verse, copy]);
+    actions.moveSection(2, 0);
+    expect(getProject().arrangement[0].id).toBe(copy);
+    actions.removeSection(copy);
+    expect(getProject().arrangement).toHaveLength(2);
+  });
+
+  it('toggles per-section mutes and cleans up when a track goes', () => {
+    const section = getProject().arrangement[0].id;
+    const kick = getProject().tracks[0].id;
+    actions.toggleSectionMute(section, kick);
+    expect(getProject().arrangement[0].muted).toEqual([kick]);
+    actions.addLane(`track.${kick}.volume`);
+    actions.setSidechain(kick);
+    actions.removeTrack(kick);
+    expect(getProject().arrangement[0].muted).toEqual([]);
+    expect(getProject().automation).toEqual([]);
+    expect(getProject().sidechain).toBeNull();
+  });
+
+  it('manages automation lanes', () => {
+    const id = actions.addLane('master.tone', 0.7)!;
+    expect(actions.addLane('master.tone')).toBeNull();
+    actions.setLanePoints(id, [
+      { t: 4, v: 2 },
+      { t: -2, v: 0.1 },
+    ]);
+    expect(getProject().automation[0].points).toEqual([
+      { t: 0, v: 0.1 },
+      { t: 4, v: 1 },
+    ]);
+    actions.removeLane(id);
+    expect(getProject().automation).toEqual([]);
+  });
+
+  it('clamps track effects, feel and humanize', () => {
+    const kick = getProject().tracks[0].id;
+    actions.setTrackFx(kick, { cutoff: -1, drive: 3 });
+    actions.updateTrack(kick, { feel: -4, humanize: 9, duck: 0.5 });
+    const track = getProject().tracks[0];
+    expect(track.fx).toMatchObject({ cutoff: 0, drive: 1 });
+    expect(track).toMatchObject({ feel: -1, humanize: 1, duck: 0.5 });
+  });
+
+  it('labels history and can travel several steps', () => {
+    const kick = getProject().tracks[0].id;
+    actions.toggleStep(kick, 0);
+    actions.setBpm(100);
+    actions.addPattern();
+    expect(useStudio.getState().past.map((e) => e.label)).toEqual(['Toggle step', 'Change tempo', 'New pattern']);
+    actions.travel(-3);
+    expect(getProject().bpm).toBe(84);
+    expect(useStudio.getState().future.map((e) => e.label)).toEqual(['Toggle step', 'Change tempo', 'New pattern']);
+    actions.travel(2);
+    expect(getProject().bpm).toBe(100);
+    expect(getProject().patterns).toHaveLength(1);
+  });
+
+  it('records notes into a chosen pattern as one undo step per take', () => {
+    const keys = getProject().tracks[1].id;
+    const pattern = getProject().patterns[0].id;
+    actions.recordNote(pattern, keys, 2, { note: 63, vel: 0.5, offset: 0.2 }, 'take1');
+    actions.recordNote(pattern, keys, 6, { note: 65, vel: 0.6, offset: -0.9 }, 'take1');
+    const steps = active().steps[keys];
+    expect(steps[2]).toMatchObject({ on: true, note: 63, offset: 0.2 });
+    expect(steps[6]).toMatchObject({ on: true, note: 65, offset: -0.5 });
+    actions.undo();
+    expect(active().steps[keys][2].on).toBe(false);
   });
 });

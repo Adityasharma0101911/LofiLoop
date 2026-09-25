@@ -4,7 +4,15 @@
  */
 import { generateBeat } from '@/lib/generate/generators';
 import { GENRES, type GenreId } from '@/lib/generate/genres';
-import { createPattern, createProject, createStep, createSteps, createTrack, rootNoteFor } from './factory';
+import {
+  createPattern,
+  createProject,
+  createSection,
+  createStep,
+  createSteps,
+  createTrack,
+  rootNoteFor,
+} from './factory';
 import type { InstrumentId } from './instruments';
 import type { Project, Step, Track } from './types';
 
@@ -203,7 +211,11 @@ export function createDemoProject(): Project {
 
   project.patterns = [a, b];
   project.activePatternId = a.id;
-  project.chain = [a.id, a.id, b.id, a.id];
+  project.arrangement = [
+    createSection(a.id, { name: 'A', repeats: 2 }),
+    createSection(b.id, { name: 'B' }),
+    createSection(a.id, { name: 'A' }),
+  ];
   return project;
 }
 

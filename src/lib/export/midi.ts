@@ -3,7 +3,14 @@
  * renderSlots/collectEvents pipeline as playback, so swing, ratchets,
  * probability (seeded), chords and mute/solo all match what you hear.
  */
-import { collectEvents, renderSlots, slotsDuration, type NoteEvent } from '@/lib/audio/sequence';
+import {
+  collectEvents,
+  renderTimeline,
+  slotAtStep,
+  stepDuration,
+  type NoteEvent,
+  type SongTimeline,
+} from '@/lib/audio/sequence';
 import { createRng } from '@/lib/music/rng';
 import type { ScaleId } from '@/lib/music/theory';
 import { INSTRUMENTS, type InstrumentId } from '@/lib/project/instruments';
@@ -13,6 +20,8 @@ export const MIDI_PPQ = 480;
 const DRUM_CHANNEL = 9;
 /** Drum hits are exported as 1/32 notes. */
 const DRUM_TICKS = MIDI_PPQ / 8;
+/** Ticks per 16th step. */
+const STEP_TICKS = MIDI_PPQ / 4;
 
 export interface MidiExportOptions {
   /** Defaults to the project's play mode. */
@@ -101,21 +110,29 @@ function chunkHeader(id: string, length: number): number[] {
   ];
 }
 
-function conductorTrack(project: Project, endTick: number): number[] {
-  const usPerQuarter = Math.round(60_000_000 / project.bpm);
+function tempoEvent(bpm: number): number[] {
+  const usPerQuarter = Math.round(60_000_000 / bpm);
+  return metaEvent(0x51, [(usPerQuarter >> 16) & 0xff, (usPerQuarter >> 8) & 0xff, usPerQuarter & 0xff]);
+}
+
+/** Name, time and key signature, plus a tempo change wherever a section changes tempo. */
+function conductorTrack(project: Project, timeline: SongTimeline, endTick: number): number[] {
   const [offset, minor] = SCALE_KEY[project.scale] ?? [0, false];
   const sf = MAJOR_SF[(((project.root + offset) % 12) + 12) % 12];
-  const meta = [
-    trackName(project.name),
-    metaEvent(0x51, [(usPerQuarter >> 16) & 0xff, (usPerQuarter >> 8) & 0xff, usPerQuarter & 0xff]),
+  const events: TimedEvent[] = [
+    { tick: 0, order: 0, data: trackName(project.name) },
     // 4/4, 24 MIDI clocks per metronome click, 8 32nds per quarter.
-    metaEvent(0x58, [4, 2, 24, 8]),
-    metaEvent(0x59, [sf & 0xff, minor ? 1 : 0]),
+    { tick: 0, order: 0, data: metaEvent(0x58, [4, 2, 24, 8]) },
+    { tick: 0, order: 0, data: metaEvent(0x59, [sf & 0xff, minor ? 1 : 0]) },
   ];
-  return trackChunk(
-    meta.map((data) => ({ tick: 0, order: 0, data })),
-    endTick,
-  );
+  let bpm = -1;
+  for (const slot of timeline.slots) {
+    if (slot.bpm === bpm) continue;
+    bpm = slot.bpm;
+    events.push({ tick: Math.round(slot.startStep * STEP_TICKS), order: 0, data: tempoEvent(bpm) });
+  }
+  if (bpm < 0) events.push({ tick: 0, order: 0, data: tempoEvent(project.bpm) });
+  return trackChunk(events, endTick);
 }
 
 interface MidiNote {
@@ -125,12 +142,12 @@ interface MidiNote {
   velocity: number;
 }
 
-function notesFor(events: NoteEvent[], toTicks: (s: number) => number): MidiNote[] {
+function notesFor(events: NoteEvent[], lengthTicks: (event: NoteEvent) => number): MidiNote[] {
   const notes: MidiNote[] = [];
   for (const event of events) {
     const def = INSTRUMENTS[event.instrument];
-    const start = toTicks(event.time);
-    const length = def.melodic ? Math.max(1, toTicks(event.duration)) : DRUM_TICKS;
+    const start = Math.max(0, Math.round(event.position * STEP_TICKS));
+    const length = def.melodic ? Math.max(1, lengthTicks(event)) : DRUM_TICKS;
     const velocity = clampInt(event.velocity * 127, 1, 127);
     const pitches = def.melodic ? event.notes : [def.gmNote ?? def.defaultNote];
     for (const pitch of new Set(pitches)) {
@@ -163,11 +180,14 @@ function notesFor(events: NoteEvent[], toTicks: (s: number) => number): MidiNote
 
 export function exportMidi(project: Project, options: MidiExportOptions = {}): Uint8Array<ArrayBuffer> {
   const mode = options.mode ?? project.playMode;
-  const slots = renderSlots(project, mode, options.repeats ?? 1);
-  const events = collectEvents(project, slots, { rng: createRng(options.seed ?? 1) });
-  const ticksPerSecond = (project.bpm / 60) * MIDI_PPQ;
-  const toTicks = (seconds: number) => Math.round(seconds * ticksPerSecond);
-  const songEnd = toTicks(slotsDuration(project, slots));
+  const timeline = renderTimeline(project, mode, options.repeats ?? 1);
+  const events = collectEvents(project, timeline, { rng: createRng(options.seed ?? 1) });
+  // Gate lengths are in seconds; convert with the tempo of the section the note starts in.
+  const lengthTicks = (event: NoteEvent) => {
+    const slot = timeline.slots[slotAtStep(timeline, Math.floor(event.position))];
+    return Math.round((event.duration / stepDuration(slot?.bpm ?? project.bpm)) * STEP_TICKS);
+  };
+  const songEnd = Math.round(timeline.totalSteps * STEP_TICKS);
 
   const byTrack = new Map<string, NoteEvent[]>();
   for (const event of events) {
@@ -176,12 +196,14 @@ export function exportMidi(project: Project, options: MidiExportOptions = {}): U
     else byTrack.set(event.trackId, [event]);
   }
 
-  const chunks: number[][] = [conductorTrack(project, songEnd)];
+  const chunks: number[][] = [conductorTrack(project, timeline, songEnd)];
   let melodicIndex = 0;
   for (const track of project.tracks) {
     const trackEvents = byTrack.get(track.id);
     if (!trackEvents?.length) continue;
     const def = INSTRUMENTS[track.instrument];
+    // Sound effects like risers have no MIDI equivalent.
+    if (def.category === 'fx') continue;
     let channel = DRUM_CHANNEL;
     if (def.melodic) {
       // Channels 0-15 minus the drum channel, cycling when there are more than 15.
@@ -195,7 +217,7 @@ export function exportMidi(project: Project, options: MidiExportOptions = {}): U
       timed.push({ tick: 0, order: 0, data: [0xc0 | channel, program] });
     }
     let end = songEnd;
-    for (const note of notesFor(trackEvents, toTicks)) {
+    for (const note of notesFor(trackEvents, lengthTicks)) {
       timed.push({ tick: note.start, order: 2, data: [0x90 | channel, note.pitch, note.velocity] });
       timed.push({ tick: note.end, order: 1, data: [0x80 | channel, note.pitch, 0] });
       end = Math.max(end, note.end);

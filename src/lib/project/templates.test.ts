@@ -17,7 +17,12 @@ function content(p: Project) {
     createdAt: null,
     updatedAt: null,
     activePatternId: p.patterns.findIndex((pat) => pat.id === p.activePatternId),
-    chain: p.chain.map((id) => p.patterns.findIndex((pat) => pat.id === id)),
+    arrangement: p.arrangement.map((s) => ({
+      ...s,
+      id: null,
+      patternId: p.patterns.findIndex((pat) => pat.id === s.patternId),
+    })),
+    meta: { ...p.meta, coverSeed: null },
     tracks: p.tracks.map((t) => ({ ...t, id: null })),
     patterns: p.patterns.map((pat) => ({ ...pat, id: null, steps: p.tracks.map((t) => pat.steps[t.id]) })),
   };
@@ -29,7 +34,7 @@ function expectValidProject(p: Project) {
   expect(new Set(p.tracks.map((t) => t.id)).size).toBe(p.tracks.length);
   const patternIds = p.patterns.map((pat) => pat.id);
   expect(patternIds).toContain(p.activePatternId);
-  for (const id of p.chain) expect(patternIds).toContain(id);
+  for (const s of p.arrangement) expect(patternIds).toContain(s.patternId);
   for (const pattern of p.patterns) {
     for (const track of p.tracks) {
       const steps = pattern.steps[track.id];
@@ -104,11 +109,15 @@ describe('createDemoProject', () => {
     expect(demo.fx.crackle).toBeCloseTo(0.35);
   });
 
-  it('has a busy pattern A, a sparser breakdown B and an A A B A chain', () => {
+  it('has a busy pattern A, a sparser breakdown B and an A A B A song', () => {
     expect(a.length).toBe(32);
     expect(activeSteps(demo, a)).toBeGreaterThanOrEqual(25);
     expect(activeSteps(demo, b)).toBeLessThan(activeSteps(demo, a));
-    expect(demo.chain).toEqual([a.id, a.id, b.id, a.id]);
+    expect(demo.arrangement.map((s) => [s.patternId, s.repeats])).toEqual([
+      [a.id, 2],
+      [b.id, 1],
+      [a.id, 1],
+    ]);
     expect(demo.activePatternId).toBe(a.id);
   });
 

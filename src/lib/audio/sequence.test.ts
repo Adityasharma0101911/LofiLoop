@@ -1,8 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { createRng } from '@/lib/music/rng';
-import { createProject, createTrack } from '@/lib/project/factory';
+import { createProject, createSection, createTrack } from '@/lib/project/factory';
 import type { Project } from '@/lib/project/types';
-import { collectEvents, eventsForStep, renderSlots, slotsDuration, stepDuration, swingOffset } from './sequence';
+import {
+  automationValue,
+  buildSongTimeline,
+  collectEvents,
+  eventsForStep,
+  renderTimeline,
+  secondsToStep,
+  sectionSpans,
+  sidechainSource,
+  slotAtStep,
+  stepDuration,
+  stepToSeconds,
+  swingOffset,
+} from './sequence';
 
 function setup(): Project {
   const tracks = [createTrack('kick'), createTrack('keys'), createTrack('808')];
@@ -83,26 +96,136 @@ describe('eventsForStep', () => {
   });
 });
 
-describe('render slots', () => {
-  it('lays out song mode patterns back to back', () => {
+describe('song timeline', () => {
+  function song() {
     const project = setup();
     const a = project.patterns[0];
     const b = { ...a, id: 'b', name: 'B', length: 32, steps: a.steps };
-    project.patterns.push(b);
-    project.chain = [a.id, b.id, 'missing', a.id];
-    const slots = renderSlots(project, 'song', 1);
-    expect(slots.map((s) => s.pattern.id)).toEqual([a.id, b.id, a.id]);
-    expect(slots.map((s) => s.start)).toEqual([0, 2, 6]);
-    expect(slotsDuration(project, slots)).toBeCloseTo(8);
+    const fill = { ...a, id: 'f', name: 'Fill', length: 16, steps: a.steps };
+    project.patterns.push(b, fill);
+    project.arrangement = [
+      createSection(a.id, { name: 'Intro' }),
+      createSection(b.id, { name: 'Verse', repeats: 2, fillPatternId: fill.id, bpm: 60, transpose: 2 }),
+      createSection('missing'),
+      createSection(a.id, { name: 'Outro', muted: [project.tracks[0].id] }),
+    ];
+    return project;
+  }
+
+  it('expands sections, repeats, fills and tempo overrides', () => {
+    const timeline = buildSongTimeline(song());
+    expect(timeline.slots.map((s) => [s.pattern.id, s.repeat, s.last, s.startStep, s.bpm])).toEqual([
+      [expect.any(String), 0, true, 0, 120],
+      ['b', 0, false, 16, 60],
+      ['f', 1, true, 48, 60],
+      [expect.any(String), 0, true, 64, 120],
+    ]);
+    // 16 steps at 120 + 48 steps at 60 + 16 steps at 120
+    expect(timeline.totalSeconds).toBeCloseTo(2 + 12 + 2);
+    expect(timeline.totalSteps).toBe(80);
+    expect(timeline.slots[3].muted.size).toBe(1);
+    expect(timeline.slots[1].transpose).toBe(2);
+  });
+
+  it('maps between song steps and seconds across tempo changes', () => {
+    const timeline = buildSongTimeline(song());
+    expect(stepToSeconds(timeline, 16)).toBeCloseTo(2);
+    expect(stepToSeconds(timeline, 20)).toBeCloseTo(3);
+    expect(secondsToStep(timeline, 3)).toBeCloseTo(20);
+    expect(slotAtStep(timeline, 63)).toBe(2);
+    expect(slotAtStep(timeline, 64)).toBe(3);
+  });
+
+  it('reports section spans in bars', () => {
+    const spans = sectionSpans(song());
+    expect(spans.map((s) => [s.section.name, s.startBar, s.bars])).toEqual([
+      ['Intro', 0, 1],
+      ['Verse', 1, 3],
+      ['Outro', 4, 1],
+    ]);
+  });
+
+  it('applies section mutes and transposition to events', () => {
+    const project = song();
+    const [kick, keys] = project.tracks;
+    const a = project.patterns[0];
+    a.steps[kick.id][0].on = true;
+    Object.assign(a.steps[keys.id][0], { on: true, note: 60 });
+    const timeline = buildSongTimeline(project);
+    const events = collectEvents(project, timeline, { rng: rng() });
+    const outroStart = timeline.slots[3].startTime;
+    expect(events.filter((e) => e.time >= outroStart - 1e-9).map((e) => e.trackId)).toEqual([keys.id]);
+    const verseKeys = events.find((e) => e.trackId === keys.id && e.position === 16);
+    expect(verseKeys?.notes).toEqual([62]);
   });
 
   it('repeats the active pattern in pattern mode', () => {
     const project = setup();
     const kick = project.tracks[0];
     project.patterns[0].steps[kick.id][0].on = true;
-    const slots = renderSlots(project, 'pattern', 3);
-    expect(slots).toHaveLength(3);
-    const events = collectEvents(project, slots, { rng: rng() }, 0.5);
+    const timeline = renderTimeline(project, 'pattern', 3);
+    expect(timeline.slots).toHaveLength(3);
+    const events = collectEvents(project, timeline, { rng: rng() }, 0.5);
     expect(events.map((e) => e.time)).toEqual([0.5, 2.5, 4.5]);
+    expect(events.map((e) => e.position)).toEqual([0, 16, 32]);
+  });
+});
+
+describe('micro-timing', () => {
+  it('applies step offsets and track feel', () => {
+    const project = setup();
+    const kick = project.tracks[0];
+    kick.feel = 1;
+    Object.assign(project.patterns[0].steps[kick.id][2], { on: true, offset: 0.2 });
+    const [event] = eventsForStep(project, project.patterns[0], 2, 1, { rng: rng() });
+    expect(event.time).toBeCloseTo(1 + 0.2 * 0.125 + 0.03);
+    expect(event.position).toBeCloseTo(2 + 0.2 + 0.03 / 0.125);
+  });
+
+  it('humanizes deterministically for a seed', () => {
+    const project = setup();
+    const kick = project.tracks[0];
+    kick.humanize = 1;
+    project.patterns[0].steps[kick.id][0].on = true;
+    const a = eventsForStep(project, project.patterns[0], 0, 1, { rng: createRng(5) })[0];
+    const b = eventsForStep(project, project.patterns[0], 0, 1, { rng: createRng(5) })[0];
+    expect(a).toEqual(b);
+    expect(Math.abs(a.time - 1)).toBeLessThanOrEqual(0.012);
+    expect(a.velocity).not.toBe(0.8);
+  });
+
+  it('never schedules before zero', () => {
+    const project = setup();
+    const kick = project.tracks[0];
+    Object.assign(project.patterns[0].steps[kick.id][0], { on: true, offset: -0.5 });
+    expect(eventsForStep(project, project.patterns[0], 0, 0, { rng: rng() })[0].time).toBe(0);
+  });
+});
+
+describe('automation', () => {
+  const lane = {
+    id: 'l',
+    target: 'master.tone' as const,
+    points: [
+      { t: 1, v: 0 },
+      { t: 3, v: 1 },
+    ],
+  };
+  it('interpolates linearly and holds at the ends', () => {
+    expect(automationValue(lane, 0)).toBe(0);
+    expect(automationValue(lane, 2)).toBeCloseTo(0.5);
+    expect(automationValue(lane, 5)).toBe(1);
+    expect(automationValue({ ...lane, points: [] }, 2)).toBeNull();
+  });
+});
+
+describe('sidechain source', () => {
+  it('picks the explicit source, else the first kick', () => {
+    const project = setup();
+    expect(sidechainSource(project)).toBe(project.tracks[0].id);
+    project.sidechain = project.tracks[1].id;
+    expect(sidechainSource(project)).toBe(project.tracks[1].id);
+    project.sidechain = 'gone';
+    expect(sidechainSource(project)).toBe(project.tracks[0].id);
   });
 });

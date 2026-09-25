@@ -3,7 +3,7 @@
  * by the UI, validation, generators and exporters. Voices live in lib/audio.
  */
 
-export type InstrumentCategory = 'drums' | 'bass' | 'keys' | 'synth';
+export type InstrumentCategory = 'drums' | 'bass' | 'keys' | 'synth' | 'band' | 'fx' | 'sampler';
 
 export type ParamUnit = 'hz' | 's' | 'percent' | 'number';
 
@@ -34,6 +34,10 @@ export interface InstrumentDef {
   noteRange: [number, number];
   /** General MIDI drum note for exports; melodic instruments export their own pitch. */
   gmNote?: number;
+  /** Non-melodic instruments whose sound follows the step length (e.g. risers). */
+  usesLength?: boolean;
+  /** Plays an uploaded sample (the track's `sample`). */
+  sampler?: boolean;
   params: ParamDef[];
 }
 
@@ -54,6 +58,14 @@ export const INSTRUMENT_IDS = [
   'bell',
   'lead',
   'bass',
+  'wurli',
+  'guitar',
+  'strings',
+  'flute',
+  'vox',
+  'upright',
+  'riser',
+  'sampler',
 ] as const;
 
 export type InstrumentId = (typeof INSTRUMENT_IDS)[number];
@@ -329,6 +341,148 @@ export const INSTRUMENTS: Record<InstrumentId, InstrumentDef> = {
     noteRange: [24, 55],
     params: [pct('tone', 'Tone', 0.35), pct('drive', 'Drive', 0.2), secs('release', 'Release', 0.02, 1, 0.12)],
   },
+  wurli: {
+    id: 'wurli',
+    name: 'Wurli',
+    short: 'WURL',
+    category: 'keys',
+    color: '#7fb0e8',
+    melodic: true,
+    polyphonic: true,
+    defaultNote: 60,
+    noteRange: [36, 84],
+    params: [
+      pct('tone', 'Tone', 0.45),
+      pct('bark', 'Bark', 0.4),
+      secs('decay', 'Decay', 0.3, 4, 1.4),
+      pct('tremolo', 'Tremolo', 0.35),
+      secs('release', 'Release', 0.05, 1.5, 0.3),
+    ],
+  },
+  guitar: {
+    id: 'guitar',
+    name: 'Nylon Guitar',
+    short: 'GTR',
+    category: 'band',
+    color: '#e8b27a',
+    melodic: true,
+    polyphonic: true,
+    defaultNote: 60,
+    noteRange: [40, 84],
+    params: [
+      pct('tone', 'Tone', 0.45),
+      secs('decay', 'Decay', 0.3, 4, 1.6),
+      pct('body', 'Body', 0.5),
+      secs('strum', 'Strum', 0, 0.08, 0.025),
+    ],
+  },
+  strings: {
+    id: 'strings',
+    name: 'Strings',
+    short: 'STR',
+    category: 'band',
+    color: '#c7a0e8',
+    melodic: true,
+    polyphonic: true,
+    defaultNote: 60,
+    noteRange: [36, 88],
+    params: [
+      secs('attack', 'Attack', 0.02, 2, 0.35),
+      secs('release', 'Release', 0.1, 4, 1),
+      pct('bright', 'Bright', 0.45),
+      pct('vibrato', 'Vibrato', 0.3),
+      pct('ensemble', 'Ensemble', 0.5),
+    ],
+  },
+  flute: {
+    id: 'flute',
+    name: 'Flute',
+    short: 'FLT',
+    category: 'band',
+    color: '#9fe0d0',
+    melodic: true,
+    polyphonic: false,
+    mono: true,
+    defaultNote: 72,
+    noteRange: [60, 96],
+    params: [
+      secs('attack', 'Attack', 0.01, 0.5, 0.06),
+      pct('breath', 'Breath', 0.35),
+      pct('vibrato', 'Vibrato', 0.35),
+      pct('bright', 'Bright', 0.5),
+      secs('release', 'Release', 0.02, 1, 0.15),
+    ],
+  },
+  vox: {
+    id: 'vox',
+    name: 'Vocal Oohs',
+    short: 'VOX',
+    category: 'band',
+    color: '#f2b8c6',
+    melodic: true,
+    polyphonic: true,
+    defaultNote: 60,
+    noteRange: [48, 84],
+    params: [
+      pct('vowel', 'Vowel', 0.2),
+      secs('attack', 'Attack', 0.02, 1.5, 0.25),
+      secs('release', 'Release', 0.1, 3, 0.8),
+      pct('vibrato', 'Vibrato', 0.3),
+      pct('air', 'Air', 0.3),
+    ],
+  },
+  upright: {
+    id: 'upright',
+    name: 'Upright Bass',
+    short: 'UPR',
+    category: 'bass',
+    color: '#d99a6c',
+    melodic: true,
+    polyphonic: false,
+    mono: true,
+    defaultNote: 36,
+    noteRange: [28, 55],
+    params: [pct('tone', 'Tone', 0.4), secs('decay', 'Decay', 0.2, 3, 0.9), pct('thump', 'Thump', 0.5)],
+  },
+  riser: {
+    id: 'riser',
+    name: 'Riser',
+    short: 'RSR',
+    category: 'fx',
+    color: '#b0b8ff',
+    melodic: false,
+    polyphonic: false,
+    usesLength: true,
+    defaultNote: 60,
+    noteRange: [60, 60],
+    params: [pct('tone', 'Tone', 0.5), pct('noise', 'Noise', 0.7), pct('pitch', 'Pitch', 0.5)],
+  },
+  sampler: {
+    id: 'sampler',
+    name: 'Sampler',
+    short: 'SMP',
+    category: 'sampler',
+    color: '#8fd3ff',
+    melodic: true,
+    polyphonic: true,
+    sampler: true,
+    defaultNote: 60,
+    noteRange: [36, 96],
+    params: [
+      {
+        id: 'tune',
+        label: 'Tune',
+        min: -24,
+        max: 24,
+        default: 0,
+        step: 1,
+        unit: 'number',
+      },
+      secs('attack', 'Attack', 0.001, 1, 0.003),
+      secs('release', 'Release', 0.01, 2, 0.08),
+      pct('cutoff', 'Cutoff', 1),
+    ],
+  },
 };
 
 export const INSTRUMENT_LIST: InstrumentDef[] = INSTRUMENT_IDS.map((id) => INSTRUMENTS[id]);
@@ -338,6 +492,9 @@ export const CATEGORY_LABELS: Record<InstrumentCategory, string> = {
   bass: 'Bass',
   keys: 'Keys',
   synth: 'Synths',
+  band: 'Band',
+  fx: 'FX',
+  sampler: 'Sampler',
 };
 
 export function isInstrumentId(value: unknown): value is InstrumentId {

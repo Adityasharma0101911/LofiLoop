@@ -170,7 +170,7 @@ export function ExportDialog() {
               onChange={setMode}
               options={[
                 { value: 'pattern', label: 'Current pattern' },
-                { value: 'song', label: `Song (${project.chain.length})` },
+                { value: 'song', label: `Song (${project.arrangement.length})` },
               ]}
             />
           </div>

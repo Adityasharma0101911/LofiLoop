@@ -14,7 +14,15 @@ import {
   type ScaleId,
 } from '@/lib/music/theory';
 import { chance, createRng, pick, randInt, weightedPick, type Rng } from '@/lib/music/rng';
-import { createPattern, createProject, createStep, createSteps, createTrack, rootNoteFor } from '@/lib/project/factory';
+import {
+  createPattern,
+  createProject,
+  createSection,
+  createStep,
+  createSteps,
+  createTrack,
+  rootNoteFor,
+} from '@/lib/project/factory';
 import { INSTRUMENTS, type InstrumentId } from '@/lib/project/instruments';
 import {
   BPM_MAX,
@@ -811,6 +819,14 @@ const MIX: Record<InstrumentId, { volume: number; pan: number; reverb: number; d
   bell: { volume: 0.62, pan: 0.25, reverb: 0.4, delay: 0.28 },
   lead: { volume: 0.58, pan: 0.12, reverb: 0.3, delay: 0.22 },
   bass: { volume: 0.74, pan: 0, reverb: 0, delay: 0 },
+  wurli: { volume: 0.66, pan: -0.1, reverb: 0.3, delay: 0.08 },
+  guitar: { volume: 0.64, pan: 0.18, reverb: 0.26, delay: 0.12 },
+  strings: { volume: 0.56, pan: 0, reverb: 0.45, delay: 0.05 },
+  flute: { volume: 0.56, pan: 0.15, reverb: 0.35, delay: 0.25 },
+  vox: { volume: 0.52, pan: -0.08, reverb: 0.5, delay: 0.15 },
+  upright: { volume: 0.72, pan: 0, reverb: 0.06, delay: 0 },
+  riser: { volume: 0.5, pan: 0, reverb: 0.35, delay: 0.2 },
+  sampler: { volume: 0.7, pan: 0, reverb: 0.2, delay: 0 },
 };
 
 function createKitTracks(genre: Genre): Track[] {
@@ -1040,7 +1056,11 @@ export function generateBeat(genreId: GenreId, options: GenerateBeatOptions): Pr
 
   project.patterns = [a, b];
   project.activePatternId = a.id;
-  project.chain = [a.id, a.id, b.id, a.id];
+  project.arrangement = [
+    createSection(a.id, { name: 'A', repeats: 2 }),
+    createSection(b.id, { name: 'B' }),
+    createSection(a.id, { name: 'A' }),
+  ];
   return project;
 }
 
