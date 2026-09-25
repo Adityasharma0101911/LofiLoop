@@ -209,7 +209,11 @@ describe('exportMidi', () => {
     expect(noteOns(hat).map((e) => e.tick)).toEqual([...first, ...first.map((t) => t + 1920)]);
     expect(hat.events[hat.events.length - 1]).toMatchObject({ metaType: 0x2f, tick: 2 * 1920 });
     // Ratcheted hits end where the next one starts instead of overlapping (1/32 = 60 ticks).
-    expect(noteOffs(hat).slice(0, 5).map((e) => e.tick)).toEqual([240, 510, 540, 570, 630]);
+    expect(
+      noteOffs(hat)
+        .slice(0, 5)
+        .map((e) => e.tick),
+    ).toEqual([240, 510, 540, 570, 630]);
   });
 
   it('follows the song chain in song mode', () => {

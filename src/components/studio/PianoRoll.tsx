@@ -21,7 +21,7 @@ function Playline({ patternId, col }: { patternId: string; col: number }) {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-y-0 z-10 w-px bg-accent"
+      className="bg-accent pointer-events-none absolute inset-y-0 z-10 w-px"
       style={{ left: LABEL + playhead.step * col }}
     />
   );
@@ -61,7 +61,10 @@ export function PianoRoll({ track, pattern }: { track: Track; pattern: Pattern }
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const used = steps.slice(0, len).filter((s) => s.on).map((s) => s.note);
+    const used = steps
+      .slice(0, len)
+      .filter((s) => s.on)
+      .map((s) => s.note);
     const target = used.length ? used.reduce((a, b) => a + b, 0) / used.length : def.defaultNote + root;
     const index = rows.findIndex((n) => n <= target);
     el.scrollTop = Math.max(0, index * ROW - el.clientHeight / 2);
@@ -124,9 +127,11 @@ export function PianoRoll({ track, pattern }: { track: Track; pattern: Pattern }
             { value: 'all', label: 'Chromatic', title: 'Show all 12 notes' },
           ]}
         />
-        <p className="hidden text-xs text-fg-subtle sm:block">Click to add or remove notes, drag to draw a line. Right-click a pad in the grid to set its length.</p>
+        <p className="text-fg-subtle hidden text-xs sm:block">
+          Click to add or remove notes, drag to draw a line. Right-click a pad in the grid to set its length.
+        </p>
       </div>
-      <div ref={scrollRef} className="relative min-h-0 flex-1 overflow-auto border-t border-line">
+      <div ref={scrollRef} className="border-line relative min-h-0 flex-1 overflow-auto border-t">
         <div
           role="grid"
           aria-label={`${track.name} piano roll`}
@@ -144,15 +149,15 @@ export function PianoRoll({ track, pattern }: { track: Track; pattern: Pattern }
               <div
                 key={note}
                 className={cn(
-                  'absolute right-0 left-0 border-b border-line/60',
+                  'border-line/60 absolute right-0 left-0 border-b',
                   isRoot ? 'bg-accent-soft' : inKey ? 'bg-surface-2/60' : 'bg-bg-deep/50',
                 )}
                 style={{ top: i * ROW, height: ROW }}
               >
                 <span
                   className={cn(
-                    'sticky left-0 flex h-full items-center border-r border-line bg-surface pl-1.5 font-mono text-[9px]',
-                    isRoot ? 'font-bold text-accent' : 'text-fg-subtle',
+                    'border-line bg-surface sticky left-0 flex h-full items-center border-r pl-1.5 font-mono text-[9px]',
+                    isRoot ? 'text-accent font-bold' : 'text-fg-subtle',
                   )}
                   style={{ width: LABEL }}
                 >

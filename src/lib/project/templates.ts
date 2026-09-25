@@ -234,13 +234,11 @@ export const TEMPLATES: ProjectTemplate[] = [
     genre: 'lofi',
     create: createDemoProject,
   },
-  ...GENRE_TEMPLATES.map(
-    ([genre, seed]): ProjectTemplate => ({
-      id: genre,
-      name: GENRES[genre].name,
-      description: GENRES[genre].description,
-      genre,
-      create: () => generateBeat(genre, { seed }),
-    }),
-  ),
+  ...GENRE_TEMPLATES.map(([genre, seed]): ProjectTemplate => ({
+    id: genre,
+    name: GENRES[genre].name,
+    description: GENRES[genre].description,
+    genre,
+    create: () => generateBeat(genre, { seed }),
+  })),
 ];

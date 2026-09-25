@@ -25,18 +25,18 @@ export function Transport({ compact = false }: { compact?: boolean }) {
         )}
       >
         {playing ? <Square className="fill-current" /> : <Play className="translate-x-px fill-current" />}
-        {playing && <span className="absolute inset-0 animate-ping rounded-full bg-fg/20 [animation-duration:2s]" />}
+        {playing && <span className="bg-fg/20 absolute inset-0 animate-ping rounded-full [animation-duration:2s]" />}
       </button>
       {!compact && (
         <IconButton
-            label={metronome ? 'Metronome on (K)' : 'Metronome off (K)'}
-            active={metronome}
-            onClick={() => {
-              const next = !metronome;
-              ui.set({ metronome: next });
-              engine.setMetronome(next);
-            }}
-          >
+          label={metronome ? 'Metronome on (K)' : 'Metronome off (K)'}
+          active={metronome}
+          onClick={() => {
+            const next = !metronome;
+            ui.set({ metronome: next });
+            engine.setMetronome(next);
+          }}
+        >
           <Timer />
         </IconButton>
       )}

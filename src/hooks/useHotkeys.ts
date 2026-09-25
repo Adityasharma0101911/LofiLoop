@@ -48,7 +48,7 @@ function selectRelativeTrack(delta: number) {
   if (!tracks.length) return;
   const current = useUi.getState().selectedTrackId;
   const index = tracks.findIndex((t) => t.id === current);
-  const next = tracks[Math.min(tracks.length - 1, Math.max(0, (index < 0 ? 0 : index + delta)))];
+  const next = tracks[Math.min(tracks.length - 1, Math.max(0, index < 0 ? 0 : index + delta))];
   ui.selectTrack(next.id);
   document.querySelector(`[data-track-row="${next.id}"]`)?.scrollIntoView({ block: 'nearest' });
 }

@@ -94,7 +94,11 @@ export function ExportDialog() {
         } else {
           setStage('Encoding MP3');
           const { encodeMp3 } = await import('@/lib/export/mp3');
-          const blob = await encodeMp3(pcm, { kbps, signal: controller.signal, onProgress: (p) => setProgress(0.5 + p * 0.5) });
+          const blob = await encodeMp3(pcm, {
+            kbps,
+            signal: controller.signal,
+            onProgress: (p) => setProgress(0.5 + p * 0.5),
+          });
           downloadBlob(blob, `${base}.mp3`);
         }
       }
@@ -152,14 +156,14 @@ export function ExportDialog() {
             >
               <f.icon className={cn('size-5', format === f.id ? 'text-accent' : 'text-fg-muted')} />
               <span className="text-sm font-semibold">{f.label}</span>
-              <span className="text-[11px] leading-tight text-fg-muted">{f.detail}</span>
+              <span className="text-fg-muted text-[11px] leading-tight">{f.detail}</span>
             </button>
           ))}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-medium text-fg-muted">Range</span>
+            <span className="text-fg-muted text-xs font-medium">Range</span>
             <Segmented
               label="Range"
               value={mode}
@@ -171,7 +175,7 @@ export function ExportDialog() {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-medium text-fg-muted">Repeat</span>
+            <span className="text-fg-muted text-xs font-medium">Repeat</span>
             <Segmented
               label="Repeat"
               value={String(repeats)}
@@ -182,7 +186,7 @@ export function ExportDialog() {
           {format !== 'midi' && (
             <>
               <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-medium text-fg-muted">{format === 'mp3' ? 'Bitrate' : 'Bit depth'}</span>
+                <span className="text-fg-muted text-xs font-medium">{format === 'mp3' ? 'Bitrate' : 'Bit depth'}</span>
                 {format === 'mp3' ? (
                   <Segmented
                     label="Bitrate"
@@ -207,7 +211,7 @@ export function ExportDialog() {
                 )}
               </div>
               <div className="flex flex-col gap-1.5">
-                <span className="text-xs font-medium text-fg-muted">Sample rate</span>
+                <span className="text-fg-muted text-xs font-medium">Sample rate</span>
                 <Segmented
                   label="Sample rate"
                   value={String(sampleRate)}
@@ -223,38 +227,55 @@ export function ExportDialog() {
         </div>
 
         {format !== 'midi' && (
-          <div className="rounded-xl border border-line px-3 py-1">
-            <Switch checked={tail} onChange={setTail} label="Let effects ring out" description="Adds 3 seconds so reverb and echo tails aren't cut off" />
+          <div className="border-line rounded-xl border px-3 py-1">
+            <Switch
+              checked={tail}
+              onChange={setTail}
+              label="Let effects ring out"
+              description="Adds 3 seconds so reverb and echo tails aren't cut off"
+            />
             {format !== 'stems' && (
-              <Switch checked={norm} onChange={setNorm} label="Normalize" description="Raise the peak level to −0.3 dB" />
+              <Switch
+                checked={norm}
+                onChange={setNorm}
+                label="Normalize"
+                description="Raise the peak level to −0.3 dB"
+              />
             )}
           </div>
         )}
 
-        <dl className="grid grid-cols-3 gap-2 rounded-xl bg-surface-2 p-3 text-center">
+        <dl className="bg-surface-2 grid grid-cols-3 gap-2 rounded-xl p-3 text-center">
           <div>
-            <dt className="text-[10px] font-semibold tracking-widest text-fg-subtle uppercase">Length</dt>
+            <dt className="text-fg-subtle text-[10px] font-semibold tracking-widest uppercase">Length</dt>
             <dd className="font-mono text-sm font-semibold">{formatDuration(seconds)}</dd>
           </div>
           <div>
-            <dt className="text-[10px] font-semibold tracking-widest text-fg-subtle uppercase">Size</dt>
-            <dd className="font-mono text-sm font-semibold">{format === 'midi' ? '< 50 KB' : `~${formatBytes(estimate)}`}</dd>
+            <dt className="text-fg-subtle text-[10px] font-semibold tracking-widest uppercase">Size</dt>
+            <dd className="font-mono text-sm font-semibold">
+              {format === 'midi' ? '< 50 KB' : `~${formatBytes(estimate)}`}
+            </dd>
           </div>
           <div>
-            <dt className="text-[10px] font-semibold tracking-widest text-fg-subtle uppercase">Tracks</dt>
-            <dd className="font-mono text-sm font-semibold">{format === 'stems' ? `${stemCount} files` : project.tracks.length}</dd>
+            <dt className="text-fg-subtle text-[10px] font-semibold tracking-widest uppercase">Tracks</dt>
+            <dd className="font-mono text-sm font-semibold">
+              {format === 'stems' ? `${stemCount} files` : project.tracks.length}
+            </dd>
           </div>
         </dl>
       </fieldset>
 
       {busy && (
         <div className="mt-5" role="status" aria-live="polite">
-          <div className="mb-1.5 flex justify-between text-xs text-fg-muted">
+          <div className="text-fg-muted mb-1.5 flex justify-between text-xs">
             <span>{stage || 'Preparing'}…</span>
             <span className="font-mono">{Math.round((progress ?? 0) * 100)}%</span>
           </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-surface-3">
-            <div className="h-full rounded-full bg-accent transition-[width] duration-200" style={{ width: `${Math.max(3, (progress ?? 0) * 100)}%` }} />
+          <div className="bg-surface-3 h-1.5 overflow-hidden rounded-full">
+            <div
+              className="bg-accent h-full rounded-full transition-[width] duration-200"
+              style={{ width: `${Math.max(3, (progress ?? 0) * 100)}%` }}
+            />
           </div>
         </div>
       )}

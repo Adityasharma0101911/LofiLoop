@@ -8,13 +8,7 @@ import { snapToScale, type ChordType, type ScaleId } from '@/lib/music/theory';
 import { clamp } from '@/lib/utils/math';
 import { createId } from '@/lib/utils/id';
 import { INSTRUMENTS, defaultParams, type InstrumentId } from '@/lib/project/instruments';
-import {
-  createPattern,
-  createSteps,
-  createTrack,
-  nextPatternName,
-  rootNoteFor,
-} from '@/lib/project/factory';
+import { createPattern, createSteps, createTrack, nextPatternName, rootNoteFor } from '@/lib/project/factory';
 import {
   BPM_MAX,
   BPM_MIN,
@@ -153,21 +147,33 @@ export const actions = {
 
   // --- project settings ---
   setName: (name: string) =>
-    update((d) => {
-      d.name = name.slice(0, 120);
-    }, { coalesce: 'name' }),
+    update(
+      (d) => {
+        d.name = name.slice(0, 120);
+      },
+      { coalesce: 'name' },
+    ),
   setBpm: (bpm: number) =>
-    update((d) => {
-      d.bpm = Math.round(clamp(bpm, BPM_MIN, BPM_MAX));
-    }, { coalesce: 'bpm' }),
+    update(
+      (d) => {
+        d.bpm = Math.round(clamp(bpm, BPM_MIN, BPM_MAX));
+      },
+      { coalesce: 'bpm' },
+    ),
   setSwing: (swing: number) =>
-    update((d) => {
-      d.swing = clamp(swing, SWING_MIN, SWING_MAX);
-    }, { coalesce: 'swing' }),
+    update(
+      (d) => {
+        d.swing = clamp(swing, SWING_MIN, SWING_MAX);
+      },
+      { coalesce: 'swing' },
+    ),
   setVolume: (volume: number) =>
-    update((d) => {
-      d.volume = clamp(volume, 0, 1);
-    }, { coalesce: 'volume' }),
+    update(
+      (d) => {
+        d.volume = clamp(volume, 0, 1);
+      },
+      { coalesce: 'volume' },
+    ),
   /** Change key; optionally transpose every melodic note along with it. */
   setKey: (root: number, scale: ScaleId, transpose = true) =>
     update((d) => {
@@ -188,25 +194,39 @@ export const actions = {
       d.scale = scale;
     }),
   setPlayMode: (mode: PlayMode) =>
-    update((d) => {
-      d.playMode = mode;
-    }, { history: false }),
+    update(
+      (d) => {
+        d.playMode = mode;
+      },
+      { history: false },
+    ),
   setFx: (fx: Partial<MasterFx>, coalesce?: string) =>
-    update((d) => {
-      Object.assign(d.fx, fx);
-    }, { coalesce: coalesce ?? `fx:${Object.keys(fx).join(',')}` }),
+    update(
+      (d) => {
+        Object.assign(d.fx, fx);
+      },
+      { coalesce: coalesce ?? `fx:${Object.keys(fx).join(',')}` },
+    ),
 
   // --- patterns ---
   selectPattern: (id: string) =>
-    update((d) => {
-      if (d.patterns.some((p) => p.id === id)) d.activePatternId = id;
-    }, { history: false }),
+    update(
+      (d) => {
+        if (d.patterns.some((p) => p.id === id)) d.activePatternId = id;
+      },
+      { history: false },
+    ),
   addPattern: (copyFrom?: string) => {
     let created: string | null = null;
     update((d) => {
       if (d.patterns.length >= MAX_PATTERNS) return;
       const source = copyFrom ? d.patterns.find((p) => p.id === copyFrom) : undefined;
-      const pattern = createPattern(nextPatternName(d.patterns), d.tracks, d.root, source?.length ?? activePattern(d).length);
+      const pattern = createPattern(
+        nextPatternName(d.patterns),
+        d.tracks,
+        d.root,
+        source?.length ?? activePattern(d).length,
+      );
       if (source) {
         for (const track of d.tracks) {
           pattern.steps[track.id] = (source.steps[track.id] ?? []).map((s) => ({ ...s }));
@@ -321,7 +341,13 @@ export const actions = {
       const index = d.tracks.findIndex((t) => t.id === trackId);
       if (index < 0) return;
       const source = d.tracks[index];
-      const copy: Track = { ...source, params: { ...source.params }, id: createId('t'), name: `${source.name} 2`, solo: false };
+      const copy: Track = {
+        ...source,
+        params: { ...source.params },
+        id: createId('t'),
+        name: `${source.name} 2`,
+        solo: false,
+      };
       d.tracks.splice(index + 1, 0, copy);
       for (const p of d.patterns) p.steps[copy.id] = (p.steps[trackId] ?? []).map((s) => ({ ...s }));
       created = copy.id;
@@ -335,15 +361,18 @@ export const actions = {
       d.tracks.splice(to, 0, track);
     }),
   updateTrack: (trackId: string, patch: Partial<Pick<Track, 'name' | 'volume' | 'pan' | 'reverb' | 'delay'>>) =>
-    update((d) => {
-      const t = findTrack(d, trackId);
-      if (!t) return;
-      if (patch.name !== undefined) t.name = patch.name.slice(0, 80);
-      if (patch.volume !== undefined) t.volume = clamp(patch.volume, 0, 1);
-      if (patch.pan !== undefined) t.pan = clamp(patch.pan, -1, 1);
-      if (patch.reverb !== undefined) t.reverb = clamp(patch.reverb, 0, 1);
-      if (patch.delay !== undefined) t.delay = clamp(patch.delay, 0, 1);
-    }, { coalesce: `track:${trackId}:${Object.keys(patch).join(',')}` }),
+    update(
+      (d) => {
+        const t = findTrack(d, trackId);
+        if (!t) return;
+        if (patch.name !== undefined) t.name = patch.name.slice(0, 80);
+        if (patch.volume !== undefined) t.volume = clamp(patch.volume, 0, 1);
+        if (patch.pan !== undefined) t.pan = clamp(patch.pan, -1, 1);
+        if (patch.reverb !== undefined) t.reverb = clamp(patch.reverb, 0, 1);
+        if (patch.delay !== undefined) t.delay = clamp(patch.delay, 0, 1);
+      },
+      { coalesce: `track:${trackId}:${Object.keys(patch).join(',')}` },
+    ),
   toggleMute: (trackId: string) =>
     update((d) => {
       const t = findTrack(d, trackId);
@@ -363,12 +392,15 @@ export const actions = {
       if (t && INSTRUMENTS[t.instrument].polyphonic) t.chord = chord;
     }),
   setParam: (trackId: string, key: string, value: number) =>
-    update((d) => {
-      const t = findTrack(d, trackId);
-      if (!t) return;
-      const def = INSTRUMENTS[t.instrument].params.find((p) => p.id === key);
-      if (def) t.params[key] = clamp(value, def.min, def.max);
-    }, { coalesce: `param:${trackId}:${key}` }),
+    update(
+      (d) => {
+        const t = findTrack(d, trackId);
+        if (!t) return;
+        const def = INSTRUMENTS[t.instrument].params.find((p) => p.id === key);
+        if (def) t.params[key] = clamp(value, def.min, def.max);
+      },
+      { coalesce: `param:${trackId}:${key}` },
+    ),
   resetParams: (trackId: string) =>
     update((d) => {
       const t = findTrack(d, trackId);
@@ -407,22 +439,28 @@ export const actions = {
       if (step) step.on = !step.on;
     }),
   setStepsOn: (trackId: string, indices: number[], on: boolean) =>
-    update((d) => {
-      const steps = activePattern(d).steps[trackId];
-      if (!steps) return;
-      for (const i of indices) if (steps[i]) steps[i].on = on;
-    }, { coalesce: `paint:${trackId}` }),
+    update(
+      (d) => {
+        const steps = activePattern(d).steps[trackId];
+        if (!steps) return;
+        for (const i of indices) if (steps[i]) steps[i].on = on;
+      },
+      { coalesce: `paint:${trackId}` },
+    ),
   setStep: (trackId: string, index: number, patch: Partial<Step>, coalesce?: string) =>
-    update((d) => {
-      const step = activePattern(d).steps[trackId]?.[index];
-      if (!step) return;
-      if (patch.on !== undefined) step.on = patch.on;
-      if (patch.vel !== undefined) step.vel = clamp(patch.vel, 0.05, 1);
-      if (patch.note !== undefined) step.note = Math.round(clamp(patch.note, 0, 127));
-      if (patch.prob !== undefined) step.prob = clamp(patch.prob, 0, 1);
-      if (patch.ratchet !== undefined) step.ratchet = Math.round(clamp(patch.ratchet, 1, 4));
-      if (patch.len !== undefined) step.len = Math.round(clamp(patch.len, 1, 16));
-    }, { coalesce }),
+    update(
+      (d) => {
+        const step = activePattern(d).steps[trackId]?.[index];
+        if (!step) return;
+        if (patch.on !== undefined) step.on = patch.on;
+        if (patch.vel !== undefined) step.vel = clamp(patch.vel, 0.05, 1);
+        if (patch.note !== undefined) step.note = Math.round(clamp(patch.note, 0, 127));
+        if (patch.prob !== undefined) step.prob = clamp(patch.prob, 0, 1);
+        if (patch.ratchet !== undefined) step.ratchet = Math.round(clamp(patch.ratchet, 1, 4));
+        if (patch.len !== undefined) step.len = Math.round(clamp(patch.len, 1, 16));
+      },
+      { coalesce },
+    ),
   setTrackSteps: (trackId: string, steps: Step[], patternId?: string) =>
     update((d) => {
       const p = patternId ? d.patterns.find((x) => x.id === patternId) : activePattern(d);

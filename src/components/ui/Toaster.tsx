@@ -19,7 +19,7 @@ export function Toaster() {
           <div
             key={t.id}
             role={t.tone === 'error' ? 'alert' : 'status'}
-            className="pointer-events-auto flex max-w-md animate-slide-up items-center gap-3 rounded-xl border border-line-strong bg-surface-2 py-2.5 pr-2 pl-3.5 text-sm shadow-xl shadow-black/30"
+            className="animate-slide-up border-line-strong bg-surface-2 pointer-events-auto flex max-w-md items-center gap-3 rounded-xl border py-2.5 pr-2 pl-3.5 text-sm shadow-xl shadow-black/30"
           >
             <Icon
               aria-hidden
@@ -38,7 +38,7 @@ export function Toaster() {
                   t.action?.run();
                   ui.dismissToast(t.id);
                 }}
-                className="rounded-md px-2 py-1 text-xs font-semibold text-accent hover:bg-accent-soft"
+                className="text-accent hover:bg-accent-soft rounded-md px-2 py-1 text-xs font-semibold"
               >
                 {t.action.label}
               </button>
@@ -47,7 +47,7 @@ export function Toaster() {
               type="button"
               aria-label="Dismiss"
               onClick={() => ui.dismissToast(t.id)}
-              className="rounded-md p-1 text-fg-subtle hover:bg-surface-3 hover:text-fg"
+              className="text-fg-subtle hover:bg-surface-3 hover:text-fg rounded-md p-1"
             >
               <X className="size-3.5" />
             </button>

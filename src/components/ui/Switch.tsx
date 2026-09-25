@@ -14,7 +14,7 @@ export function Switch({ checked, onChange, label, description }: SwitchProps) {
     <label className="flex cursor-pointer items-center justify-between gap-4 py-1.5">
       <span className="min-w-0">
         <span className="block text-sm font-medium">{label}</span>
-        {description && <span className="block text-xs text-fg-muted">{description}</span>}
+        {description && <span className="text-fg-muted block text-xs">{description}</span>}
       </span>
       <button
         type="button"

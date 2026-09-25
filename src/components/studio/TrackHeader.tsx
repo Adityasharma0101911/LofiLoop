@@ -25,14 +25,17 @@ export const TrackHeader = memo(function TrackHeader({ track, index, count, sele
   return (
     <div
       className={cn(
-        'sticky left-0 z-10 flex h-full items-center gap-1.5 border-r border-line pr-1.5 pl-2 transition-colors',
+        'border-line sticky left-0 z-10 flex h-full items-center gap-1.5 border-r pr-1.5 pl-2 transition-colors',
         selected ? 'bg-surface-2' : 'bg-surface',
       )}
       onClick={() => ui.selectTrack(track.id)}
     >
       <span
         aria-hidden
-        className={cn('absolute inset-y-1 left-0 w-[3px] rounded-r-full transition-opacity', selected ? 'opacity-100' : 'opacity-0')}
+        className={cn(
+          'absolute inset-y-1 left-0 w-[3px] rounded-r-full transition-opacity',
+          selected ? 'opacity-100' : 'opacity-0',
+        )}
         style={{ background: def.color }}
       />
       <InstrumentBadge
@@ -59,7 +62,7 @@ export const TrackHeader = memo(function TrackHeader({ track, index, count, sele
               if (e.key === 'Escape') setRenaming(false);
               e.stopPropagation();
             }}
-            className="h-6 w-full rounded bg-surface-3 px-1 text-[13px] font-medium outline-none"
+            className="bg-surface-3 h-6 w-full rounded px-1 text-[13px] font-medium outline-none"
           />
         ) : (
           <button
@@ -68,7 +71,10 @@ export const TrackHeader = memo(function TrackHeader({ track, index, count, sele
             onDoubleClick={() => setRenaming(true)}
             title={`${track.name} (double-click to rename)`}
             aria-current={selected}
-            className={cn('block w-full truncate text-left text-[13px] font-medium', track.mute ? 'text-fg-subtle line-through' : 'text-fg')}
+            className={cn(
+              'block w-full truncate text-left text-[13px] font-medium',
+              track.mute ? 'text-fg-subtle line-through' : 'text-fg',
+            )}
           >
             {track.name}
           </button>
@@ -114,7 +120,7 @@ export const TrackHeader = memo(function TrackHeader({ track, index, count, sele
             type="button"
             {...props}
             aria-label={`${track.name} actions`}
-            className="hidden size-6 shrink-0 items-center justify-center rounded-md text-fg-subtle hover:bg-surface-3 hover:text-fg sm:flex"
+            className="text-fg-subtle hover:bg-surface-3 hover:text-fg hidden size-6 shrink-0 items-center justify-center rounded-md sm:flex"
           >
             <MoreVertical className="size-3.5" />
           </button>
@@ -140,7 +146,12 @@ export const TrackHeader = memo(function TrackHeader({ track, index, count, sele
           },
           { label: 'Clear steps', icon: <Eraser />, hint: 'Del', onSelect: () => actions.clearTrack(track.id) },
           'separator',
-          { label: 'Move up', icon: <ArrowUp />, disabled: index === 0, onSelect: () => actions.moveTrack(index, index - 1) },
+          {
+            label: 'Move up',
+            icon: <ArrowUp />,
+            disabled: index === 0,
+            onSelect: () => actions.moveTrack(index, index - 1),
+          },
           {
             label: 'Move down',
             icon: <ArrowDown />,
@@ -162,10 +173,10 @@ export const TrackHeader = memo(function TrackHeader({ track, index, count, sele
       <span
         data-meter={track.id}
         aria-hidden
-        className="relative ml-auto h-7 w-1 shrink-0 overflow-hidden rounded-full bg-surface-3 [--level:0] sm:ml-0"
+        className="bg-surface-3 relative ml-auto h-7 w-1 shrink-0 overflow-hidden rounded-full [--level:0] sm:ml-0"
       >
         <span
-          className="absolute inset-x-0 bottom-0 h-full origin-bottom rounded-full bg-success transition-none [[data-clip=true]>&]:bg-danger"
+          className="bg-success [[data-clip=true]>&]:bg-danger absolute inset-x-0 bottom-0 h-full origin-bottom rounded-full transition-none"
           style={{ transform: 'scaleY(var(--level))' }}
         />
       </span>

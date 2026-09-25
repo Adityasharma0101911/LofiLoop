@@ -74,7 +74,10 @@ export function LibraryDialog() {
   const download = (id: string) => {
     const project = id === currentId ? getProject() : loadProject(id);
     if (!project) return;
-    downloadBlob(new Blob([serializeProject(project, true)], { type: 'application/json' }), `${slugify(project.name)}.lofiloop.json`);
+    downloadBlob(
+      new Blob([serializeProject(project, true)], { type: 'application/json' }),
+      `${slugify(project.name)}.lofiloop.json`,
+    );
   };
 
   const remove = (id: string) => {
@@ -130,22 +133,24 @@ export function LibraryDialog() {
           setDragging(false);
           void importFiles(e.dataTransfer.files);
         }}
-        className={cn('rounded-xl transition-colors', dragging && 'bg-accent-soft ring-2 ring-accent ring-dashed')}
+        className={cn('rounded-xl transition-colors', dragging && 'bg-accent-soft ring-accent ring-dashed ring-2')}
       >
         <label className="relative mb-3 block">
           <span className="sr-only">Search beats</span>
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-subtle" />
+          <Search className="text-fg-subtle pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search beats"
-            className="h-9 w-full rounded-lg border border-line bg-surface-2 pr-3 pl-9 text-sm outline-none focus:border-line-strong"
+            className="border-line bg-surface-2 focus:border-line-strong h-9 w-full rounded-lg border pr-3 pl-9 text-sm outline-none"
           />
         </label>
         {filtered.length === 0 ? (
-          <p className="py-10 text-center text-sm text-fg-muted">
-            {items.length ? 'No beats match your search.' : 'No saved beats yet. Drop a .json project here to import it.'}
+          <p className="text-fg-muted py-10 text-center text-sm">
+            {items.length
+              ? 'No beats match your search.'
+              : 'No saved beats yet. Drop a .json project here to import it.'}
           </p>
         ) : (
           <ul className="flex flex-col gap-1">
@@ -156,7 +161,7 @@ export function LibraryDialog() {
                   key={m.id}
                   className={cn(
                     'group flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors',
-                    current ? 'border-accent/50 bg-accent-soft' : 'border-transparent hover:bg-surface-2',
+                    current ? 'border-accent/50 bg-accent-soft' : 'hover:bg-surface-2 border-transparent',
                   )}
                 >
                   <button
@@ -171,9 +176,13 @@ export function LibraryDialog() {
                   >
                     <span className="flex items-center gap-2">
                       <span className="truncate text-sm font-semibold">{m.name}</span>
-                      {current && <span className="rounded bg-accent px-1.5 py-px text-[10px] font-bold text-accent-fg">OPEN</span>}
+                      {current && (
+                        <span className="bg-accent text-accent-fg rounded px-1.5 py-px text-[10px] font-bold">
+                          OPEN
+                        </span>
+                      )}
                     </span>
-                    <span className="mt-0.5 block text-xs text-fg-muted">
+                    <span className="text-fg-muted mt-0.5 block text-xs">
                       {m.bpm} BPM · {m.key} · {m.tracks} tracks · edited {formatRelativeTime(m.updatedAt)}
                     </span>
                   </button>
@@ -189,10 +198,14 @@ export function LibraryDialog() {
                   ) : (
                     <div className="flex items-center gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
                       {!current && (
-                        <IconButton label="Open" tip="top" onClick={() => {
-                          const project = loadProject(m.id);
-                          if (project) openProject(project);
-                        }}>
+                        <IconButton
+                          label="Open"
+                          tip="top"
+                          onClick={() => {
+                            const project = loadProject(m.id);
+                            if (project) openProject(project);
+                          }}
+                        >
                           <FolderOpen />
                         </IconButton>
                       )}
@@ -202,7 +215,12 @@ export function LibraryDialog() {
                       <IconButton label="Download file" tip="top" onClick={() => download(m.id)}>
                         <Download />
                       </IconButton>
-                      <IconButton label="Delete" tip="top" onClick={() => setConfirming(m.id)} className="hover:text-danger">
+                      <IconButton
+                        label="Delete"
+                        tip="top"
+                        onClick={() => setConfirming(m.id)}
+                        className="hover:text-danger"
+                      >
                         <Trash2 />
                       </IconButton>
                     </div>

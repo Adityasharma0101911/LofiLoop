@@ -51,7 +51,10 @@ function PatternTabs() {
             {playing && (
               <span
                 aria-hidden
-                className={cn('absolute -top-0.5 -right-0.5 size-2 rounded-full ring-2 ring-surface', active ? 'bg-fg' : 'bg-accent')}
+                className={cn(
+                  'ring-surface absolute -top-0.5 -right-0.5 size-2 rounded-full ring-2',
+                  active ? 'bg-fg' : 'bg-accent',
+                )}
               />
             )}
           </button>
@@ -144,8 +147,8 @@ export function PatternBar() {
   };
 
   return (
-    <div className="shrink-0 border-b border-line bg-surface/60">
-      <div className="flex h-12 items-center gap-2 overflow-x-auto px-2 scrollbar-none sm:px-3">
+    <div className="border-line bg-surface/60 shrink-0 border-b">
+      <div className="scrollbar-none flex h-12 items-center gap-2 overflow-x-auto px-2 sm:px-3">
         <Segmented
           label="Playback mode"
           value={mode}
@@ -155,7 +158,7 @@ export function PatternBar() {
             { value: 'song', label: 'Song', title: 'Play the pattern chain in order' },
           ]}
         />
-        <span className="h-5 w-px shrink-0 bg-line" />
+        <span className="bg-line h-5 w-px shrink-0" />
         <PatternTabs />
         <div className="ml-auto flex shrink-0 items-center gap-1">
           <label className="sr-only" htmlFor="pattern-length">

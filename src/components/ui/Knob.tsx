@@ -1,6 +1,15 @@
 'use client';
 
-import { memo, useCallback, useEffect, useEffectEvent, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type PointerEvent,
+} from 'react';
 import { clamp, snap } from '@/lib/utils/math';
 import { cn } from '@/lib/utils/cn';
 
@@ -175,7 +184,7 @@ export const Knob = memo(function Knob({
         className={cn(
           'relative touch-none rounded-full outline-none',
           disabled ? 'cursor-not-allowed' : 'cursor-ns-resize',
-          'focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
+          'focus-visible:ring-accent focus-visible:ring-offset-surface focus-visible:ring-2 focus-visible:ring-offset-2',
         )}
         style={{ width: size, height: size }}
         title={`${label}: ${text}${defaultValue !== undefined ? ' (double-click to reset)' : ''}`}
@@ -183,14 +192,22 @@ export const Knob = memo(function Knob({
         <svg width={size} height={size} aria-hidden className="overflow-visible">
           <circle cx={c} cy={c} r={r - 3} className="fill-surface-3" />
           <circle cx={c} cy={c} r={r - 3} fill="none" className="stroke-line-strong" strokeWidth={1} />
-          <path d={arc(c, c, r + 1, START, START + SWEEP)} fill="none" className="stroke-surface-3" strokeWidth={3} strokeLinecap="round" />
+          <path
+            d={arc(c, c, r + 1, START, START + SWEEP)}
+            fill="none"
+            className="stroke-surface-3"
+            strokeWidth={3}
+            strokeLinecap="round"
+          />
           <path d={arc(c, c, r + 1, from, angle)} fill="none" stroke={color} strokeWidth={3} strokeLinecap="round" />
           <circle cx={dot.x} cy={dot.y} r={2.2} className="fill-fg" />
         </svg>
       </div>
       <div className="flex flex-col items-center leading-tight">
-        <span className="text-[10px] font-medium tracking-wide text-fg-muted uppercase">{label}</span>
-        <span className={cn('font-mono text-[10px] tabular-nums', active ? 'text-accent' : 'text-fg-subtle')}>{text}</span>
+        <span className="text-fg-muted text-[10px] font-medium tracking-wide uppercase">{label}</span>
+        <span className={cn('font-mono text-[10px] tabular-nums', active ? 'text-accent' : 'text-fg-subtle')}>
+          {text}
+        </span>
       </div>
     </div>
   );

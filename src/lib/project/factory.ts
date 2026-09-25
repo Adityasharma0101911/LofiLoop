@@ -1,15 +1,7 @@
 import { createId } from '@/lib/utils/id';
 import type { ChordType, ScaleId } from '@/lib/music/theory';
 import { defaultParams, getInstrument, type InstrumentId } from './instruments';
-import {
-  MAX_STEPS,
-  PROJECT_VERSION,
-  type MasterFx,
-  type Pattern,
-  type Project,
-  type Step,
-  type Track,
-} from './types';
+import { MAX_STEPS, PROJECT_VERSION, type MasterFx, type Pattern, type Project, type Step, type Track } from './types';
 
 export const PATTERN_NAMES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 
@@ -97,8 +89,7 @@ export interface ProjectOptions {
 export function createProject(options: ProjectOptions = {}): Project {
   const root = options.root ?? 0;
   const tracks =
-    options.tracks ??
-    (['kick', 'snare', 'hat', 'keys', 'bass'] as InstrumentId[]).map((id) => createTrack(id));
+    options.tracks ?? (['kick', 'snare', 'hat', 'keys', 'bass'] as InstrumentId[]).map((id) => createTrack(id));
   const pattern = createPattern('A', tracks, root);
   const now = Date.now();
   return {

@@ -44,7 +44,18 @@ interface StepPadProps {
   barStart: boolean;
 }
 
-const StepPad = memo(function StepPad({ step, index, row, color, melodic, showNote, dim, focused, trackName, barStart }: StepPadProps) {
+const StepPad = memo(function StepPad({
+  step,
+  index,
+  row,
+  color,
+  melodic,
+  showNote,
+  dim,
+  focused,
+  trackName,
+  barStart,
+}: StepPadProps) {
   const beatOdd = Math.floor(index / 4) % 2 === 1;
   return (
     <button
@@ -108,7 +119,17 @@ interface TrackRowProps {
   template: string;
 }
 
-const TrackRow = memo(function TrackRow({ track, steps, length, row, count, selected, dim, focusCol, template }: TrackRowProps) {
+const TrackRow = memo(function TrackRow({
+  track,
+  steps,
+  length,
+  row,
+  count,
+  selected,
+  dim,
+  focusCol,
+  template,
+}: TrackRowProps) {
   const def = INSTRUMENTS[track.instrument];
   const pads = [];
   for (let i = 0; i < length; i++) {
@@ -152,7 +173,7 @@ function Ruler({ length, template, patternName }: { length: number; template: st
         data-col={i}
         className={cn(
           'ruler-cell flex h-5 items-center justify-center rounded font-mono text-[10px] tabular-nums transition-colors',
-          bar ? 'font-bold text-fg-muted' : beat ? 'text-fg-subtle' : 'text-transparent',
+          bar ? 'text-fg-muted font-bold' : beat ? 'text-fg-subtle' : 'text-transparent',
           i > 0 && bar && 'ml-[3px]',
         )}
       >
@@ -163,11 +184,11 @@ function Ruler({ length, template, patternName }: { length: number; template: st
   return (
     <div
       role="row"
-      className="sticky top-0 z-20 grid border-b border-line bg-surface/95 py-1.5 backdrop-blur"
+      className="border-line bg-surface/95 sticky top-0 z-20 grid border-b py-1.5 backdrop-blur"
       style={{ gridTemplateColumns: template, columnGap: GAP }}
     >
-      <div className="sticky left-0 z-10 flex items-center gap-2 bg-surface/95 pl-2 text-[10px] font-semibold tracking-widest text-fg-subtle uppercase">
-        Pattern <span className="rounded bg-surface-3 px-1.5 py-0.5 font-mono text-fg">{patternName}</span>
+      <div className="bg-surface/95 text-fg-subtle sticky left-0 z-10 flex items-center gap-2 pl-2 text-[10px] font-semibold tracking-widest uppercase">
+        Pattern <span className="bg-surface-3 text-fg rounded px-1.5 py-0.5 font-mono">{patternName}</span>
       </div>
       {cells}
     </div>
@@ -191,7 +212,7 @@ function AddTrack({ disabled }: { disabled: boolean }) {
           const r = e.currentTarget.getBoundingClientRect();
           setAnchor(anchor ? null : { x: r.left + 180, y: r.bottom });
         }}
-        className="flex h-9 items-center gap-2 rounded-lg border border-dashed border-line-strong px-3 text-sm text-fg-muted transition-colors hover:border-accent hover:text-accent disabled:opacity-40"
+        className="border-line-strong text-fg-muted hover:border-accent hover:text-accent flex h-9 items-center gap-2 rounded-lg border border-dashed px-3 text-sm transition-colors disabled:opacity-40"
         title={disabled ? `Up to ${MAX_TRACKS} tracks` : 'Add a track'}
       >
         <Plus className="size-4" /> Add track
@@ -212,7 +233,9 @@ export function Sequencer() {
   const stepEditor = useUi((s) => s.stepEditor);
   const scrollRef = useRef<HTMLDivElement>(null);
   const paint = useRef<{ trackId: string; row: number; on: boolean; visited: Set<number> } | null>(null);
-  const touch = useRef<{ x: number; y: number; row: number; col: number; timer: ReturnType<typeof setTimeout> } | null>(null);
+  const touch = useRef<{ x: number; y: number; row: number; col: number; timer: ReturnType<typeof setTimeout> } | null>(
+    null,
+  );
   const [focus, setFocus] = useState<{ row: number; col: number }>({ row: 0, col: 0 });
 
   const anySolo = tracks.some((t) => t.solo);
@@ -336,7 +359,10 @@ export function Sequencer() {
   return (
     <div
       ref={scrollRef}
-      className={cn('relative min-h-0 flex-1 overflow-auto overscroll-contain [--cw:26px] [--hw:132px] sm:[--cw:30px] sm:[--hw:236px]', scope)}
+      className={cn(
+        'relative min-h-0 flex-1 overflow-auto overscroll-contain [--cw:26px] [--hw:132px] sm:[--cw:30px] sm:[--hw:236px]',
+        scope,
+      )}
     >
       <PlayheadStyle patternId={pattern.id} scope={scope} />
       <div
@@ -381,7 +407,9 @@ export function Sequencer() {
           ))}
         </div>
         {tracks.length === 0 && (
-          <p className="sticky left-0 px-4 py-8 text-sm text-fg-muted">No tracks yet. Add an instrument to start sequencing.</p>
+          <p className="text-fg-muted sticky left-0 px-4 py-8 text-sm">
+            No tracks yet. Add an instrument to start sequencing.
+          </p>
         )}
         <AddTrack disabled={tracks.length >= MAX_TRACKS} />
       </div>

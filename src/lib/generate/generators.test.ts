@@ -381,7 +381,12 @@ describe('regeneratePattern', () => {
     const pattern = p.patterns[1];
     const result = regeneratePattern(p, pattern.id, 'boombap', { seed: 77, keep });
     expect(p).toEqual(before);
-    expect(Object.keys(result).sort()).toEqual(p.tracks.filter((t) => !keep.has(t.id)).map((t) => t.id).sort());
+    expect(Object.keys(result).sort()).toEqual(
+      p.tracks
+        .filter((t) => !keep.has(t.id))
+        .map((t) => t.id)
+        .sort(),
+    );
     for (const [trackId, steps] of Object.entries(result)) {
       const track = p.tracks.find((t) => t.id === trackId)!;
       expectValidSteps(steps, pattern.length);
@@ -417,5 +422,21 @@ describe('regeneratePattern', () => {
   it('returns nothing for an unknown pattern', () => {
     const p = generateBeat('trap', { seed: 1 });
     expect(regeneratePattern(p, 'nope', 'trap', { seed: 1 })).toEqual({});
+  });
+});
+
+describe('genre data', () => {
+  it('every groove plays every drum in its genre kit', () => {
+    const gaps: string[] = [];
+    for (const genre of GENRE_LIST) {
+      const drums = genre.kit.filter((id) => INSTRUMENTS[id].category === 'drums');
+      for (const groove of genre.grooves) {
+        for (const id of drums) {
+          const part = groove.parts[id];
+          if (!part || !parseGroovePart(part).some(Boolean)) gaps.push(`${genre.id}/${groove.name}/${id}`);
+        }
+      }
+    }
+    expect(gaps).toEqual([]);
   });
 });

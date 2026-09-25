@@ -261,14 +261,7 @@ function partFor(groove: DrumGroove, instrument: InstrumentId): string {
 }
 
 /** Lay a short figure (groove notation) onto the steps starting at `start`; never softens a louder hit. */
-function applyFigure(
-  steps: Step[],
-  start: number,
-  figure: string,
-  note: number,
-  rng: Rng,
-  ramp: boolean,
-): void {
+function applyFigure(steps: Step[], start: number, figure: string, note: number, rng: Rng, ramp: boolean): void {
   for (let k = 0; k < figure.length; k++) {
     const i = start + k;
     const hit = parseGroovePart(figure[k])[0];
@@ -332,7 +325,8 @@ function varyBar(
     }
     if (bar > 0 && chance(rng, 0.12)) {
       const weak: number[] = [];
-      for (let i = start; i < end; i++) if (steps[i].on && (i - start) % 4 !== 0 && steps[i].ratchet === 1) weak.push(i);
+      for (let i = start; i < end; i++)
+        if (steps[i].on && (i - start) % 4 !== 0 && steps[i].ratchet === 1) weak.push(i);
       if (weak.length) steps[pick(rng, weak)] = { ...blank };
     }
   }
@@ -495,13 +489,7 @@ const BASS_MAX_LEN: Record<BassStyle, number> = {
   sustain: 16,
 };
 
-function bassSteps(
-  style: BassStyle,
-  genre: Genre,
-  track: Track,
-  ctx: GenerateContext,
-  progression: number[],
-): Step[] {
+function bassSteps(style: BassStyle, genre: Genre, track: Track, ctx: GenerateContext, progression: number[]): Step[] {
   const rng = ctx.rng;
   const length = patternLength(ctx.length);
   const steps = blankSteps(track.instrument, ctx.root);
@@ -542,10 +530,25 @@ function bassSteps(
       }
       const root = rootOf(slot);
       const kind = is808
-        ? weightedPick(rng, [['root', 5], ['octave', 2.5], ['fifth', 1]] as const)
-        : weightedPick(rng, [['root', 5], ['octave', 1.5], ['fifth', 2], ['third', 1]] as const);
+        ? weightedPick(rng, [
+            ['root', 5],
+            ['octave', 2.5],
+            ['fifth', 1],
+          ] as const)
+        : weightedPick(rng, [
+            ['root', 5],
+            ['octave', 1.5],
+            ['fifth', 2],
+            ['third', 1],
+          ] as const);
       const note =
-        kind === 'octave' ? octaveUp(root) : kind === 'fifth' ? chordTone(root, 2) : kind === 'third' ? chordTone(root, 1) : root;
+        kind === 'octave'
+          ? octaveUp(root)
+          : kind === 'fifth'
+            ? chordTone(root, 2)
+            : kind === 'third'
+              ? chordTone(root, 1)
+              : root;
       notes.set(k, { note, vel: is808 ? 0.92 : 0.74 });
     }
     if (!is808) {
@@ -623,12 +626,7 @@ function bassSteps(
  * Bass line following the progression roots (in the bass register), locked
  * partly to the kick, with fifths, octaves and approach tones per genre style.
  */
-export function generateBassSteps(
-  genreId: GenreId,
-  track: Track,
-  ctx: GenerateContext,
-  progression: number[],
-): Step[] {
+export function generateBassSteps(genreId: GenreId, track: Track, ctx: GenerateContext, progression: number[]): Step[] {
   const genre = GENRES[genreId];
   return bassSteps(genre.bass, genre, track, ctx, progression);
 }
@@ -798,7 +796,7 @@ export function generateTrackSteps(
 
 const MIX: Record<InstrumentId, { volume: number; pan: number; reverb: number; delay: number }> = {
   kick: { volume: 0.88, pan: 0, reverb: 0.02, delay: 0 },
-  '808': { volume: 0.82, pan: 0, reverb: 0, delay: 0 },
+  '808': { volume: 0.74, pan: 0, reverb: 0, delay: 0 },
   snare: { volume: 0.76, pan: 0.02, reverb: 0.14, delay: 0 },
   clap: { volume: 0.72, pan: -0.04, reverb: 0.18, delay: 0 },
   hat: { volume: 0.64, pan: 0.22, reverb: 0.05, delay: 0 },
@@ -904,17 +902,73 @@ function generateTracks(
 }
 
 const NAME_FIRST = [
-  'Rainy', 'Late', 'Paper', 'Velvet', 'Faded', 'Quiet', 'Hazy', 'Slow', 'Golden', 'Sleepy',
-  'Dusty', 'Lazy', 'Midnight', 'Sunday', 'Soft', 'Warm', 'Blue', 'Foggy', 'Distant', 'Amber',
-  'Lunar', 'Cozy', 'Rusty', 'Neon', 'Mellow', 'Hidden', 'Autumn', 'Frosted', 'Silver', 'Empty',
-  'Low', 'Morning',
+  'Rainy',
+  'Late',
+  'Paper',
+  'Velvet',
+  'Faded',
+  'Quiet',
+  'Hazy',
+  'Slow',
+  'Golden',
+  'Sleepy',
+  'Dusty',
+  'Lazy',
+  'Midnight',
+  'Sunday',
+  'Soft',
+  'Warm',
+  'Blue',
+  'Foggy',
+  'Distant',
+  'Amber',
+  'Lunar',
+  'Cozy',
+  'Rusty',
+  'Neon',
+  'Mellow',
+  'Hidden',
+  'Autumn',
+  'Frosted',
+  'Silver',
+  'Empty',
+  'Low',
+  'Morning',
 ];
 
 const NAME_SECOND = [
-  'Window', 'Bus', 'Moon', 'Tape', 'Static', 'Streetlight', 'Rooftop', 'Cassette', 'Letters',
-  'Garden', 'Coffee', 'Library', 'Polaroid', 'Tram', 'Harbor', 'Balcony', 'Notebook', 'Radio',
-  'Sweater', 'Lanterns', 'Platform', 'Diner', 'Clouds', 'Pages', 'Bloom', 'Vinyl', 'Porch',
-  'Snowfall', 'Echoes', 'Skyline', 'Ferry', 'Postcards',
+  'Window',
+  'Bus',
+  'Moon',
+  'Tape',
+  'Static',
+  'Streetlight',
+  'Rooftop',
+  'Cassette',
+  'Letters',
+  'Garden',
+  'Coffee',
+  'Library',
+  'Polaroid',
+  'Tram',
+  'Harbor',
+  'Balcony',
+  'Notebook',
+  'Radio',
+  'Sweater',
+  'Lanterns',
+  'Platform',
+  'Diner',
+  'Clouds',
+  'Pages',
+  'Bloom',
+  'Vinyl',
+  'Porch',
+  'Snowfall',
+  'Echoes',
+  'Skyline',
+  'Ferry',
+  'Postcards',
 ];
 
 /** Evocative two-word beat name, deterministic for a seed (e.g. "Rainy Window"). */

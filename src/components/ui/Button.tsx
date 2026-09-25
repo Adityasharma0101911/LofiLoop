@@ -35,7 +35,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       ref={ref}
       type={type}
       className={cn(
-        'inline-flex shrink-0 items-center justify-center font-medium whitespace-nowrap transition-[background-color,color,filter,box-shadow] duration-150 select-none disabled:opacity-40 disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+        'inline-flex shrink-0 items-center justify-center font-medium whitespace-nowrap transition-[background-color,color,filter,box-shadow] duration-150 select-none disabled:pointer-events-none disabled:opacity-40 [&_svg]:size-4 [&_svg]:shrink-0',
         variants[variant],
         sizes[size],
         active && 'bg-accent-soft text-accent hover:bg-accent-soft hover:text-accent',
@@ -77,7 +77,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
       data-tip={tip === 'none' ? undefined : label}
       data-tip-pos={tip}
       className={cn(
-        'tip relative inline-flex shrink-0 items-center justify-center transition-colors duration-150 select-none disabled:opacity-40 disabled:pointer-events-none [&_svg]:shrink-0',
+        'tip relative inline-flex shrink-0 items-center justify-center transition-colors duration-150 select-none disabled:pointer-events-none disabled:opacity-40 [&_svg]:shrink-0',
         variants[variant],
         iconSizes[size],
         active && 'bg-accent-soft text-accent hover:bg-accent-soft hover:text-accent',

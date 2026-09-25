@@ -23,16 +23,16 @@ export function KeyControl() {
           const r = e.currentTarget.getBoundingClientRect();
           setAnchor(anchor ? null : { x: r.left + r.width / 2, y: r.bottom });
         }}
-        className="flex h-9 flex-col items-start justify-center rounded-lg bg-surface-2 px-2.5 hover:bg-surface-3"
+        className="bg-surface-2 hover:bg-surface-3 flex h-9 flex-col items-start justify-center rounded-lg px-2.5"
       >
-        <span className="text-[9px] leading-none font-semibold tracking-widest text-fg-subtle uppercase">Key</span>
+        <span className="text-fg-subtle text-[9px] leading-none font-semibold tracking-widest uppercase">Key</span>
         <span className="text-sm leading-tight font-semibold whitespace-nowrap">
-          {NOTE_NAMES[root]} <span className="font-normal text-fg-muted">{SCALES[scale].label.toLowerCase()}</span>
+          {NOTE_NAMES[root]} <span className="text-fg-muted font-normal">{SCALES[scale].label.toLowerCase()}</span>
         </span>
       </button>
       {anchor && (
         <Popover anchor={anchor} onClose={close} label="Key and scale" className="w-72">
-          <p className="mb-2 text-[10px] font-semibold tracking-widest text-fg-subtle uppercase">Root</p>
+          <p className="text-fg-subtle mb-2 text-[10px] font-semibold tracking-widest uppercase">Root</p>
           <div className="grid grid-cols-6 gap-1">
             {NOTE_NAMES.map((name, i) => (
               <button
@@ -50,7 +50,7 @@ export function KeyControl() {
               </button>
             ))}
           </div>
-          <p className="mt-3 mb-2 text-[10px] font-semibold tracking-widest text-fg-subtle uppercase">Scale</p>
+          <p className="text-fg-subtle mt-3 mb-2 text-[10px] font-semibold tracking-widest uppercase">Scale</p>
           <div className="grid grid-cols-2 gap-1">
             {SCALE_IDS.map((id) => (
               <button
@@ -67,7 +67,7 @@ export function KeyControl() {
               </button>
             ))}
           </div>
-          <label className="mt-3 flex items-center gap-2 text-xs text-fg-muted">
+          <label className="text-fg-muted mt-3 flex items-center gap-2 text-xs">
             <input
               type="checkbox"
               checked={transpose}

@@ -1,16 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import {
-  Download,
-  FolderOpen,
-  HelpCircle,
-  MoreHorizontal,
-  Plus,
-  Redo2,
-  Share2,
-  Undo2,
-} from 'lucide-react';
+import { Download, FolderOpen, HelpCircle, MoreHorizontal, Plus, Redo2, Share2, Undo2 } from 'lucide-react';
 import { SWING_MAX, SWING_MIN } from '@/lib/project/types';
 import { actions, useStudio } from '@/lib/store/studio';
 import { ui } from '@/lib/store/ui';
@@ -85,13 +76,28 @@ function MobileMenu() {
           <Button variant="ghost" className="justify-start" icon={<Plus />} onClick={run(() => ui.openDialog('new'))}>
             New beat
           </Button>
-          <Button variant="ghost" className="justify-start" icon={<FolderOpen />} onClick={run(() => ui.openDialog('library'))}>
+          <Button
+            variant="ghost"
+            className="justify-start"
+            icon={<FolderOpen />}
+            onClick={run(() => ui.openDialog('library'))}
+          >
             Library
           </Button>
-          <Button variant="ghost" className="justify-start" icon={<Share2 />} onClick={run(() => ui.openDialog('share'))}>
+          <Button
+            variant="ghost"
+            className="justify-start"
+            icon={<Share2 />}
+            onClick={run(() => ui.openDialog('share'))}
+          >
             Share link
           </Button>
-          <Button variant="ghost" className="justify-start" icon={<Download />} onClick={run(() => ui.openDialog('export'))}>
+          <Button
+            variant="ghost"
+            className="justify-start"
+            icon={<Download />}
+            onClick={run(() => ui.openDialog('export'))}
+          >
             Export
           </Button>
           <Button variant="ghost" className="justify-start" icon={<Undo2 />} onClick={actions.undo}>
@@ -108,7 +114,7 @@ function MobileMenu() {
 
 export function TopBar() {
   return (
-    <header className="relative z-20 flex h-14 shrink-0 items-center gap-2 border-b border-line bg-surface px-2 sm:gap-3 sm:px-3">
+    <header className="border-line bg-surface relative z-20 flex h-14 shrink-0 items-center gap-2 border-b px-2 sm:gap-3 sm:px-3">
       <div className="flex min-w-0 items-center gap-2 lg:w-[260px] lg:shrink-0">
         <Logo className="size-8 shrink-0" />
         <div className="min-w-0 flex-1">
@@ -128,7 +134,7 @@ export function TopBar() {
 
       <div className="hidden items-center gap-1 md:flex">
         <History />
-        <span className="mx-1 h-5 w-px bg-line" />
+        <span className="bg-line mx-1 h-5 w-px" />
         <IconButton label="New beat" onClick={() => ui.openDialog('new')}>
           <Plus />
         </IconButton>
@@ -142,7 +148,13 @@ export function TopBar() {
         <IconButton label="Keyboard shortcuts (?)" onClick={() => ui.openDialog('shortcuts')}>
           <HelpCircle />
         </IconButton>
-        <Button variant="primary" size="sm" className="ml-1" icon={<Download />} onClick={() => ui.openDialog('export')}>
+        <Button
+          variant="primary"
+          size="sm"
+          className="ml-1"
+          icon={<Download />}
+          onClick={() => ui.openDialog('export')}
+        >
           Export
         </Button>
       </div>

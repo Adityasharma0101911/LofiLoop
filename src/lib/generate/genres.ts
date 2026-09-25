@@ -9,16 +9,7 @@ import type { MasterFx } from '@/lib/project/types';
 
 export type GenreId = 'lofi' | 'jazzhop' | 'boombap' | 'chillhop' | 'trap' | 'rnb' | 'house' | 'ambient';
 
-export const GENRE_IDS: GenreId[] = [
-  'lofi',
-  'jazzhop',
-  'boombap',
-  'chillhop',
-  'trap',
-  'rnb',
-  'house',
-  'ambient',
-];
+export const GENRE_IDS: GenreId[] = ['lofi', 'jazzhop', 'boombap', 'chillhop', 'trap', 'rnb', 'house', 'ambient'];
 
 /**
  * Drum parts are step strings, one character per 16th note ('|' and spaces are
@@ -449,6 +440,7 @@ export const GENRES: Record<GenreId, Genre> = {
         parts: {
           kick: 'X.........X..... | X......X..X.....',
           snare: '........X.......',
+          clap: '........x.......',
           hat: 'x.x.x.x.x.x.x.x. | x.x.x.x.x.x.3.2.',
           openhat: '................ | ......o.........',
         },
@@ -458,8 +450,9 @@ export const GENRES: Record<GenreId, Genre> = {
         parts: {
           kick: 'X......X..X..... | X.X.......X..X..',
           snare: '........X....... | ........X..x....',
+          clap: '........x.......',
           hat: 'xoxoxoxoxoxoxo3. | xoxoxo3oxoxo3344',
-          openhat: '................',
+          openhat: '................ | ..............o.',
         },
       },
       {
@@ -467,20 +460,14 @@ export const GENRES: Record<GenreId, Genre> = {
         parts: {
           kick: 'X.........X..X.. | X......X..X.....',
           snare: '........X.......',
+          clap: '........x.......',
           hat: 'x..x..x..x..x.x. | x..x..x..x..3.3.',
           openhat: '..............o. | ................',
         },
       },
     ],
     drums: { ghosts: 0.05, rolls: 0.6, fill: 'roll' },
-    progressions: [
-      minor(1, 6),
-      minor(1, 6, 4, 5),
-      minor(1, 4, 6, 5),
-      minor(1, 2),
-      minor(1, 7, 6, 7),
-      minor(6, 1),
-    ],
+    progressions: [minor(1, 6), minor(1, 6, 4, 5), minor(1, 4, 6, 5), minor(1, 2), minor(1, 7, 6, 7), minor(6, 1)],
     chordRhythms: [
       { span: 16, hits: [0], push: 0 },
       { span: 16, hits: [0, 8], push: 0 },

@@ -48,9 +48,7 @@ export async function encodeMp3(audio: PcmAudio, options: Mp3Options = {}): Prom
   if (numChannels < 1) throw new RangeError('encodeMp3: audio has no channels');
   const sampleRate = Math.round(audio.sampleRate);
   if (!(MP3_SAMPLE_RATES as readonly number[]).includes(sampleRate)) {
-    throw new RangeError(
-      `encodeMp3: unsupported sample rate ${sampleRate} Hz (use ${MP3_SAMPLE_RATES.join(', ')})`,
-    );
+    throw new RangeError(`encodeMp3: unsupported sample rate ${sampleRate} Hz (use ${MP3_SAMPLE_RATES.join(', ')})`);
   }
 
   const { Mp3Encoder } = await import('@breezystack/lamejs');

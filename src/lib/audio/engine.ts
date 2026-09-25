@@ -172,8 +172,7 @@ export class AudioEngine {
     this.playing = true;
     this.stepIndex = 0;
     this.chainIndex = 0;
-    this.patternId =
-      project.playMode === 'song' ? songOrder(project)[0] : project.activePatternId;
+    this.patternId = project.playMode === 'song' ? songOrder(project)[0] : project.activePatternId;
     this.nextStepTime = ctx.currentTime + START_DELAY;
     this.queue = [];
     this.mixer!.setTransportActive(true, this.nextStepTime);

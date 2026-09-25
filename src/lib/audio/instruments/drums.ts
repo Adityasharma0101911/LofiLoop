@@ -39,7 +39,7 @@ export const kick: VoiceFn = (ctx, out, { time, velocity }, p) => {
     noise.connect(hp).connect(clickAmp).connect(v.output);
   }
 
-  v.output.gain.value = level * 0.72;
+  v.output.gain.value = level * 0.56;
   return v.finish();
 };
 

@@ -20,7 +20,8 @@ const grid = (pattern: boolean[]) => pattern.map((on) => (on ? 'x' : '.')).join(
 /** Steps with hits at the given indices (vel/note derived from the index so moves are traceable). */
 function stepsWith(indices: number[]): Step[] {
   const steps = createSteps(60);
-  for (const i of indices) steps[i] = createStep(60 + (i % 12), { on: true, vel: 0.5 + (i % 5) / 10, len: 1 + (i % 3) });
+  for (const i of indices)
+    steps[i] = createStep(60 + (i % 12), { on: true, vel: 0.5 + (i % 5) / 10, len: 1 + (i % 3) });
   return steps;
 }
 

@@ -42,25 +42,27 @@ export function Dialog({ open, onClose, title, description, children, footer, si
         if (e.target === ref.current && !locked) onClose();
       }}
       className={cn(
-        'm-auto w-[calc(100%-2rem)] overflow-visible bg-transparent p-0 text-fg backdrop:bg-black/55 backdrop:backdrop-blur-[2px] open:animate-pop-in',
+        'text-fg open:animate-pop-in m-auto w-[calc(100%-2rem)] overflow-visible bg-transparent p-0 backdrop:bg-black/55 backdrop:backdrop-blur-[2px]',
         widths[size],
       )}
     >
       {open && (
-        <div className="flex max-h-[min(88dvh,760px)] flex-col rounded-2xl border border-line-strong bg-surface shadow-2xl shadow-black/40">
-          <header className="flex items-start gap-4 border-b border-line px-5 pt-4 pb-3.5">
+        <div className="border-line-strong bg-surface flex max-h-[min(88dvh,760px)] flex-col rounded-2xl border shadow-2xl shadow-black/40">
+          <header className="border-line flex items-start gap-4 border-b px-5 pt-4 pb-3.5">
             <div className="min-w-0 flex-1">
               <h2 id="dialog-title" className="text-base font-semibold tracking-tight">
                 {title}
               </h2>
-              {description && <p className="mt-0.5 text-sm text-fg-muted">{description}</p>}
+              {description && <p className="text-fg-muted mt-0.5 text-sm">{description}</p>}
             </div>
             <IconButton label="Close" tip="none" onClick={onClose} disabled={locked} className="-mr-1.5">
               <X />
             </IconButton>
           </header>
           <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
-          {footer && <footer className="flex items-center justify-end gap-2 border-t border-line px-5 py-3">{footer}</footer>}
+          {footer && (
+            <footer className="border-line flex items-center justify-end gap-2 border-t px-5 py-3">{footer}</footer>
+          )}
         </div>
       )}
     </dialog>

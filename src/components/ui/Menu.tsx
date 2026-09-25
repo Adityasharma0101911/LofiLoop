@@ -43,7 +43,7 @@ export function Menu({ label, items, trigger, align = 'center' }: MenuProps) {
           <div role="menu" aria-label={label} className="flex flex-col">
             {items.map((item, i) =>
               item === 'separator' ? (
-                <div key={`sep-${i}`} role="separator" className="my-1 h-px bg-line" />
+                <div key={`sep-${i}`} role="separator" className="bg-line my-1 h-px" />
               ) : (
                 <button
                   key={item.label}
@@ -55,13 +55,13 @@ export function Menu({ label, items, trigger, align = 'center' }: MenuProps) {
                     item.onSelect();
                   }}
                   className={cn(
-                    'flex h-8 items-center gap-2.5 rounded-md px-2 text-left text-[13px] transition-colors disabled:opacity-40 [&_svg]:size-4 [&_svg]:text-fg-subtle',
+                    '[&_svg]:text-fg-subtle flex h-8 items-center gap-2.5 rounded-md px-2 text-left text-[13px] transition-colors disabled:opacity-40 [&_svg]:size-4',
                     item.danger ? 'text-danger hover:bg-danger/10 [&_svg]:text-danger' : 'hover:bg-surface-3',
                   )}
                 >
                   {item.icon}
                   <span className="flex-1">{item.label}</span>
-                  {item.hint && <span className="font-mono text-[10px] text-fg-subtle">{item.hint}</span>}
+                  {item.hint && <span className="text-fg-subtle font-mono text-[10px]">{item.hint}</span>}
                 </button>
               ),
             )}

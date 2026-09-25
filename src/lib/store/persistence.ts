@@ -75,7 +75,9 @@ export function saveProject(project: Project): void {
   } catch (error) {
     const quota = error instanceof DOMException && (error.name === 'QuotaExceededError' || error.code === 22);
     throw new StorageError(
-      quota ? 'Browser storage is full. Delete old beats from the library to keep saving.' : 'Could not save to browser storage.',
+      quota
+        ? 'Browser storage is full. Delete old beats from the library to keep saving.'
+        : 'Could not save to browser storage.',
     );
   }
 }

@@ -30,9 +30,12 @@ export function Inspector() {
   return (
     <section
       aria-label={`${track.name} inspector`}
-      className={cn('flex shrink-0 flex-col border-t border-line bg-surface transition-[height] duration-200', open ? 'h-[248px] sm:h-[272px]' : 'h-10')}
+      className={cn(
+        'border-line bg-surface flex shrink-0 flex-col border-t transition-[height] duration-200',
+        open ? 'h-[248px] sm:h-[272px]' : 'h-10',
+      )}
     >
-      <div className="flex h-10 shrink-0 items-center gap-2 border-b border-line px-2 sm:px-3">
+      <div className="border-line flex h-10 shrink-0 items-center gap-2 border-b px-2 sm:px-3">
         <InstrumentBadge id={track.instrument} />
         <span className="max-w-40 truncate text-sm font-semibold">{track.name}</span>
         <div role="tablist" aria-label="Inspector" className="ml-2 flex items-center gap-0.5">

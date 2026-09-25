@@ -25,7 +25,7 @@ const CHORDS: { value: ChordType; label: string; title: string }[] = [
 function Section({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
   return (
     <section className={className}>
-      <h3 className="mb-2 text-[10px] font-semibold tracking-widest text-fg-subtle uppercase">{title}</h3>
+      <h3 className="text-fg-subtle mb-2 text-[10px] font-semibold tracking-widest uppercase">{title}</h3>
       {children}
     </section>
   );
@@ -45,17 +45,23 @@ export function SoundPanel({ track }: { track: Track }) {
             const r = e.currentTarget.getBoundingClientRect();
             setAnchor(anchor ? null : { x: r.left + 170, y: r.bottom });
           }}
-          className="flex h-10 w-full items-center gap-2 rounded-lg border border-line bg-surface-2 px-2 text-left text-sm font-medium hover:border-line-strong"
+          className="border-line bg-surface-2 hover:border-line-strong flex h-10 w-full items-center gap-2 rounded-lg border px-2 text-left text-sm font-medium"
         >
           <InstrumentBadge id={track.instrument} />
           <span className="flex-1 truncate">{def.name}</span>
-          <ChevronDown className="size-4 text-fg-subtle" />
+          <ChevronDown className="text-fg-subtle size-4" />
         </button>
         <div className="mt-2 flex gap-1.5">
           <Button size="sm" icon={<Play />} onClick={() => void engine.preview(track)} className="flex-1">
             Preview
           </Button>
-          <Button size="sm" variant="ghost" icon={<RotateCcw />} onClick={() => actions.resetParams(track.id)} title="Reset sound to default">
+          <Button
+            size="sm"
+            variant="ghost"
+            icon={<RotateCcw />}
+            onClick={() => actions.resetParams(track.id)}
+            title="Reset sound to default"
+          >
             Reset
           </Button>
         </div>
@@ -94,17 +100,55 @@ export function SoundPanel({ track }: { track: Track }) {
 
       <Section title="Mix">
         <div className="flex flex-wrap gap-3">
-          <Knob label="Volume" value={track.volume} min={0} max={1} defaultValue={0.8} format={formatPercent} onChange={(v) => actions.updateTrack(track.id, { volume: v })} />
-          <Knob label="Pan" value={track.pan} min={-1} max={1} defaultValue={0} bipolar format={formatPan} onChange={(v) => actions.updateTrack(track.id, { pan: v })} />
-          <Knob label="Reverb" value={track.reverb} min={0} max={1} defaultValue={0} format={formatPercent} onChange={(v) => actions.updateTrack(track.id, { reverb: v })} />
-          <Knob label="Delay" value={track.delay} min={0} max={1} defaultValue={0} format={formatPercent} onChange={(v) => actions.updateTrack(track.id, { delay: v })} />
+          <Knob
+            label="Volume"
+            value={track.volume}
+            min={0}
+            max={1}
+            defaultValue={0.8}
+            format={formatPercent}
+            onChange={(v) => actions.updateTrack(track.id, { volume: v })}
+          />
+          <Knob
+            label="Pan"
+            value={track.pan}
+            min={-1}
+            max={1}
+            defaultValue={0}
+            bipolar
+            format={formatPan}
+            onChange={(v) => actions.updateTrack(track.id, { pan: v })}
+          />
+          <Knob
+            label="Reverb"
+            value={track.reverb}
+            min={0}
+            max={1}
+            defaultValue={0}
+            format={formatPercent}
+            onChange={(v) => actions.updateTrack(track.id, { reverb: v })}
+          />
+          <Knob
+            label="Delay"
+            value={track.delay}
+            min={0}
+            max={1}
+            defaultValue={0}
+            format={formatPercent}
+            onChange={(v) => actions.updateTrack(track.id, { delay: v })}
+          />
         </div>
       </Section>
 
       {def.polyphonic && (
         <Section title="Chords">
-          <Segmented label="Chord mode" value={track.chord} options={CHORDS} onChange={(v) => actions.setChord(track.id, v)} />
-          <p className="mt-2 max-w-52 text-xs text-fg-subtle">Each note plays a chord built from the project key.</p>
+          <Segmented
+            label="Chord mode"
+            value={track.chord}
+            options={CHORDS}
+            onChange={(v) => actions.setChord(track.id, v)}
+          />
+          <p className="text-fg-subtle mt-2 max-w-52 text-xs">Each note plays a chord built from the project key.</p>
         </Section>
       )}
     </div>

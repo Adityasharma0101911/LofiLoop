@@ -22,9 +22,12 @@ export function SongChain() {
   const total = chain.reduce((sum, id) => sum + (byId.get(id)?.length ?? 0), 0) * stepDuration(bpm);
 
   return (
-    <div className="flex h-11 items-center gap-2 border-t border-line px-2 sm:px-3">
-      <span className="shrink-0 text-[10px] font-semibold tracking-widest text-fg-subtle uppercase">Song</span>
-      <ol className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto py-1 scrollbar-none" aria-label="Song arrangement">
+    <div className="border-line flex h-11 items-center gap-2 border-t px-2 sm:px-3">
+      <span className="text-fg-subtle shrink-0 text-[10px] font-semibold tracking-widest uppercase">Song</span>
+      <ol
+        className="scrollbar-none flex min-w-0 flex-1 items-center gap-1 overflow-x-auto py-1"
+        aria-label="Song arrangement"
+      >
         {chain.map((id, i) => {
           const pattern = byId.get(id);
           if (!pattern) return null;
@@ -67,7 +70,7 @@ export function SongChain() {
                   type="button"
                   aria-label={`Remove slot ${i + 1}`}
                   onClick={() => actions.removeFromChain(i)}
-                  className="absolute -top-1.5 -right-1.5 hidden size-4 items-center justify-center rounded-full bg-surface-3 text-fg-muted shadow group-hover:flex hover:bg-danger hover:text-white focus-visible:flex"
+                  className="bg-surface-3 text-fg-muted hover:bg-danger absolute -top-1.5 -right-1.5 hidden size-4 items-center justify-center rounded-full shadow group-hover:flex hover:text-white focus-visible:flex"
                 >
                   <X className="size-2.5" />
                 </button>
@@ -85,7 +88,7 @@ export function SongChain() {
                   type="button"
                   {...props}
                   aria-label="Add pattern to song"
-                  className="flex h-7 items-center gap-1 rounded-md border border-dashed border-line-strong px-2 text-xs text-fg-muted hover:border-accent hover:text-accent"
+                  className="border-line-strong text-fg-muted hover:border-accent hover:text-accent flex h-7 items-center gap-1 rounded-md border border-dashed px-2 text-xs"
                 >
                   <Plus className="size-3.5" /> Add
                 </button>
@@ -95,7 +98,7 @@ export function SongChain() {
           </li>
         )}
       </ol>
-      <span className="shrink-0 font-mono text-[11px] text-fg-subtle tabular-nums" title="Song length">
+      <span className="text-fg-subtle shrink-0 font-mono text-[11px] tabular-nums" title="Song length">
         {formatDuration(total)}
       </span>
     </div>

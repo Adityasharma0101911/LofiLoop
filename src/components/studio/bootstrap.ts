@@ -53,12 +53,10 @@ export function bootstrap(): void {
   useStudio.subscribe((state, prev) => {
     if (state.project === prev.project) return;
     engine.sync(state.project);
-    if (state.project.name !== prev.project.name) document.title = `${state.project.name} · LofiLoop`;
     // A new project replaced the old one: persist immediately so the library is up to date.
     if (state.project.id !== prev.project.id) saveNow();
     else scheduleSave();
   });
-  document.title = `${project.name} · LofiLoop`;
 
   const flush = () => {
     if (saveTimer) saveNow();

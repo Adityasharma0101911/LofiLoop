@@ -5,9 +5,9 @@ import { Logo } from './Logo';
 
 function Splash() {
   return (
-    <div className="flex h-dvh flex-col items-center justify-center gap-4 bg-bg text-fg" role="status">
+    <div className="bg-bg text-fg flex h-dvh flex-col items-center justify-center gap-4" role="status">
       <Logo className="size-12 animate-pulse" />
-      <p className="text-sm text-fg-muted">Warming up the tape deck…</p>
+      <p className="text-fg-muted text-sm">Warming up the tape deck…</p>
     </div>
   );
 }

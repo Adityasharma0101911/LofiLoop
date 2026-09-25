@@ -67,7 +67,9 @@ export function ShareDialog() {
       }
     >
       {error ? (
-        <p className="text-sm text-danger">This browser can&apos;t create share links. Try downloading the project from the library instead.</p>
+        <p className="text-danger text-sm">
+          This browser can&apos;t create share links. Try downloading the project from the library instead.
+        </p>
       ) : (
         <>
           <textarea
@@ -76,9 +78,9 @@ export function ShareDialog() {
             value={url ?? 'Creating link…'}
             onFocus={(e) => e.currentTarget.select()}
             rows={4}
-            className="w-full resize-none rounded-lg border border-line bg-surface-2 p-2.5 font-mono text-[11px] leading-relaxed break-all text-fg-muted outline-none focus:border-line-strong"
+            className="border-line bg-surface-2 text-fg-muted focus:border-line-strong w-full resize-none rounded-lg border p-2.5 font-mono text-[11px] leading-relaxed break-all outline-none"
           />
-          {url && <p className="mt-1.5 text-xs text-fg-subtle">{url.length.toLocaleString()} characters</p>}
+          {url && <p className="text-fg-subtle mt-1.5 text-xs">{url.length.toLocaleString()} characters</p>}
         </>
       )}
     </Dialog>

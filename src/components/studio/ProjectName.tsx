@@ -34,7 +34,7 @@ export function ProjectName() {
       }}
       maxLength={120}
       spellCheck={false}
-      className="h-8 w-full min-w-0 truncate rounded-md border border-transparent bg-transparent px-2 text-sm font-semibold text-fg transition-colors hover:border-line focus:border-line-strong focus:bg-surface-2 focus:outline-none"
+      className="text-fg hover:border-line focus:border-line-strong focus:bg-surface-2 h-8 w-full min-w-0 truncate rounded-md border border-transparent bg-transparent px-2 text-sm font-semibold transition-colors focus:outline-none"
     />
   );
 }

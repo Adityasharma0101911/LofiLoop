@@ -1,7 +1,15 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createDemoProject } from '@/lib/project/templates';
-import { deleteProject, listProjects, loadCurrentProject, loadProject, readPrefs, saveProject, writePrefs } from './persistence';
+import {
+  deleteProject,
+  listProjects,
+  loadCurrentProject,
+  loadProject,
+  readPrefs,
+  saveProject,
+  writePrefs,
+} from './persistence';
 
 describe('local library', () => {
   beforeEach(() => localStorage.clear());

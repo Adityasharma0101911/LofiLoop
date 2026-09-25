@@ -59,7 +59,14 @@ describe('encodeWavBytes', () => {
   });
 
   it('interleaves stereo samples left then right', () => {
-    const bytes = encodeWavBytes(pcm([[0.5, 0.25], [-0.5, -0.25]]), 16, { dither: false });
+    const bytes = encodeWavBytes(
+      pcm([
+        [0.5, 0.25],
+        [-0.5, -0.25],
+      ]),
+      16,
+      { dither: false },
+    );
     const v = view(bytes);
     expect([0, 1, 2, 3].map((i) => v.getInt16(44 + i * 2, true))).toEqual([
       Math.round(0.5 * 32767),
@@ -72,16 +79,14 @@ describe('encodeWavBytes', () => {
   it('clips out-of-range and NaN samples', () => {
     const b16 = encodeWavBytes(pcm([[2, -3, NaN, 1, -1]]), 16, { dither: false });
     const v16 = view(b16);
-    expect([0, 1, 2, 3, 4].map((i) => v16.getInt16(44 + i * 2, true))).toEqual([
-      32767, -32767, 0, 32767, -32767,
-    ]);
+    expect([0, 1, 2, 3, 4].map((i) => v16.getInt16(44 + i * 2, true))).toEqual([32767, -32767, 0, 32767, -32767]);
 
     const b32 = view(encodeWavBytes(pcm([[1.5, -9]]), 32));
     expect(b32.getFloat32(58, true)).toBe(1);
     expect(b32.getFloat32(62, true)).toBe(-1);
   });
 
-  it('packs 24-bit samples as little-endian two\'s complement', () => {
+  it("packs 24-bit samples as little-endian two's complement", () => {
     const bytes = encodeWavBytes(pcm([[0.5, -0.5, 1, -1]]), 24);
     // 0.5 * 8388607 = 4194303.5 -> 4194304 = 0x400000
     expect(Array.from(bytes.subarray(44, 47))).toEqual([0x00, 0x00, 0x40]);
@@ -144,12 +149,22 @@ describe('encodeWav', () => {
 
 describe('peakLevel / normalize', () => {
   it('finds the absolute peak across channels', () => {
-    expect(peakLevel(pcm([[0.1, -0.2], [0.05, -0.6]]))).toBeCloseTo(0.6);
+    expect(
+      peakLevel(
+        pcm([
+          [0.1, -0.2],
+          [0.05, -0.6],
+        ]),
+      ),
+    ).toBeCloseTo(0.6);
     expect(peakLevel(pcm([[0, 0]]))).toBe(0);
   });
 
   it('scales the peak to the target level and returns new arrays', () => {
-    const input = pcm([[0.25, -0.5], [0.1, 0]]);
+    const input = pcm([
+      [0.25, -0.5],
+      [0.1, 0],
+    ]);
     const out = normalize(input, -6);
     const target = Math.pow(10, -6 / 20);
 

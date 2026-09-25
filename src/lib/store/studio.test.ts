@@ -72,7 +72,11 @@ describe('studio store', () => {
     const id = actions.addTrack('snare')!;
     for (const p of getProject().patterns) expect(p.steps[id]).toHaveLength(64);
     const copy = actions.duplicateTrack(id)!;
-    expect(getProject().tracks.map((t) => t.id).slice(-2)).toEqual([id, copy]);
+    expect(
+      getProject()
+        .tracks.map((t) => t.id)
+        .slice(-2),
+    ).toEqual([id, copy]);
     actions.moveTrack(4, 0);
     expect(getProject().tracks[0].id).toBe(copy);
     actions.removeTrack(id);

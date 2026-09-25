@@ -24,14 +24,14 @@ function SaveIndicator() {
   }
   if (status === 'error') {
     return (
-      <span className="flex items-center gap-1.5 text-danger">
+      <span className="text-danger flex items-center gap-1.5">
         <CircleAlert className="size-3" /> Not saved
       </span>
     );
   }
   return (
     <span className="flex items-center gap-1.5" title="Your beat is saved in this browser automatically">
-      <Check className="size-3 text-success" /> Saved{savedAt ? ` ${formatRelativeTime(savedAt)}` : ''}
+      <Check className="text-success size-3" /> Saved{savedAt ? ` ${formatRelativeTime(savedAt)}` : ''}
     </span>
   );
 }
@@ -43,28 +43,42 @@ export function StatusBar() {
   const scale = useStudio((s) => s.project.scale);
 
   return (
-    <footer className="flex h-8 shrink-0 items-center gap-4 border-t border-line bg-surface px-3 text-[11px] text-fg-subtle">
+    <footer className="border-line bg-surface text-fg-subtle flex h-8 shrink-0 items-center gap-4 border-t px-3 text-[11px]">
       <SaveIndicator />
       <span className="hidden sm:inline">
-        {tracks} tracks · {patterns} pattern{patterns > 1 ? 's' : ''} · {NOTE_NAMES[root]} {SCALES[scale].label.toLowerCase()}
+        {tracks} tracks · {patterns} pattern{patterns > 1 ? 's' : ''} · {NOTE_NAMES[root]}{' '}
+        {SCALES[scale].label.toLowerCase()}
       </span>
       <div className="ml-auto flex items-center gap-1 lg:hidden">
-        <button type="button" onClick={() => ui.openPanel('create')} className="flex h-6 items-center gap-1 rounded-md px-2 hover:bg-surface-3 hover:text-fg">
+        <button
+          type="button"
+          onClick={() => ui.openPanel('create')}
+          className="hover:bg-surface-3 hover:text-fg flex h-6 items-center gap-1 rounded-md px-2"
+        >
           <Sparkles className="size-3" /> Create
         </button>
-        <button type="button" onClick={() => ui.openPanel('fx')} className="flex h-6 items-center gap-1 rounded-md px-2 hover:bg-surface-3 hover:text-fg">
+        <button
+          type="button"
+          onClick={() => ui.openPanel('fx')}
+          className="hover:bg-surface-3 hover:text-fg flex h-6 items-center gap-1 rounded-md px-2"
+        >
           <AudioLines className="size-3" /> FX
         </button>
-        <button type="button" onClick={() => ui.openPanel('mixer')} className="flex h-6 items-center gap-1 rounded-md px-2 hover:bg-surface-3 hover:text-fg">
+        <button
+          type="button"
+          onClick={() => ui.openPanel('mixer')}
+          className="hover:bg-surface-3 hover:text-fg flex h-6 items-center gap-1 rounded-md px-2"
+        >
           <SlidersHorizontal className="size-3" /> Mixer
         </button>
       </div>
       <button
         type="button"
         onClick={() => ui.openDialog('shortcuts')}
-        className="ml-auto hidden items-center gap-1.5 rounded-md px-1.5 py-0.5 hover:bg-surface-3 hover:text-fg lg:flex"
+        className="hover:bg-surface-3 hover:text-fg ml-auto hidden items-center gap-1.5 rounded-md px-1.5 py-0.5 lg:flex"
       >
-        <Keyboard className="size-3" /> Press <kbd className="rounded border border-line-strong px-1 font-mono">?</kbd> for shortcuts
+        <Keyboard className="size-3" /> Press <kbd className="border-line-strong rounded border px-1 font-mono">?</kbd>{' '}
+        for shortcuts
       </button>
     </footer>
   );

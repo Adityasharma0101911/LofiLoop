@@ -5,7 +5,9 @@ export default function Home() {
     <>
       <StudioLoader />
       <noscript>
-        <p style={{ padding: 24, fontFamily: 'system-ui' }}>LofiLoop is an in-browser music studio and needs JavaScript to run.</p>
+        <p style={{ padding: 24, fontFamily: 'system-ui' }}>
+          LofiLoop is an in-browser music studio and needs JavaScript to run.
+        </p>
       </noscript>
     </>
   );

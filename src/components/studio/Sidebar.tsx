@@ -22,18 +22,22 @@ export function Sidebar() {
   return (
     <>
       {drawer && (
-        <div aria-hidden className="fixed inset-0 z-30 bg-black/40 animate-fade-in lg:hidden" onClick={() => ui.set({ drawerOpen: false })} />
+        <div
+          aria-hidden
+          className="animate-fade-in fixed inset-0 z-30 bg-black/40 lg:hidden"
+          onClick={() => ui.set({ drawerOpen: false })}
+        />
       )}
       <aside
         aria-label="Side panel"
         className={cn(
-          'z-40 flex w-[min(340px,92vw)] shrink-0 flex-col border-l border-line bg-surface',
+          'border-line bg-surface z-40 flex w-[min(340px,92vw)] shrink-0 flex-col border-l',
           'fixed inset-y-0 right-0 shadow-2xl transition-transform duration-200 lg:static lg:translate-x-0 lg:shadow-none',
           drawer ? 'translate-x-0' : 'translate-x-full',
           !docked && 'lg:hidden',
         )}
       >
-        <div className="flex h-12 shrink-0 items-center gap-1 border-b border-line px-2">
+        <div className="border-line flex h-12 shrink-0 items-center gap-1 border-b px-2">
           <div role="tablist" aria-label="Side panel" className="flex flex-1 items-center gap-0.5">
             {TABS.map((t) => (
               <button
@@ -51,7 +55,12 @@ export function Sidebar() {
               </button>
             ))}
           </div>
-          <IconButton label="Close panel" tip="none" onClick={() => ui.set({ drawerOpen: false })} className="lg:hidden">
+          <IconButton
+            label="Close panel"
+            tip="none"
+            onClick={() => ui.set({ drawerOpen: false })}
+            className="lg:hidden"
+          >
             <X />
           </IconButton>
         </div>

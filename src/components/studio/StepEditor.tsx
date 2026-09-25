@@ -18,8 +18,8 @@ function Row({ label, value, children }: { label: string; value?: string; childr
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-baseline justify-between">
-        <span className="text-[10px] font-semibold tracking-widest text-fg-subtle uppercase">{label}</span>
-        {value && <span className="font-mono text-[11px] text-fg-muted tabular-nums">{value}</span>}
+        <span className="text-fg-subtle text-[10px] font-semibold tracking-widest uppercase">{label}</span>
+        {value && <span className="text-fg-muted font-mono text-[11px] tabular-nums">{value}</span>}
       </div>
       {children}
     </div>
@@ -44,19 +44,19 @@ export function StepEditor({ target, track }: { target: StepEditorTarget; track:
       <div className="mb-3 flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">{track.name}</p>
-          <p className="text-xs text-fg-muted">
+          <p className="text-fg-muted text-xs">
             Step {target.index + 1} · {step.on ? 'on' : 'off'}
           </p>
         </div>
         <div className="flex shrink-0 gap-1">
-          <IconButton
-            label="Preview"
-            tip="none"
-            onClick={() => void engine.preview(track, step.note, step.vel)}
-          >
+          <IconButton label="Preview" tip="none" onClick={() => void engine.preview(track, step.note, step.vel)}>
             <Play />
           </IconButton>
-          <Button size="xs" variant={step.on ? 'secondary' : 'primary'} onClick={() => actions.toggleStep(track.id, target.index)}>
+          <Button
+            size="xs"
+            variant={step.on ? 'secondary' : 'primary'}
+            onClick={() => actions.toggleStep(track.id, target.index)}
+          >
             {step.on ? 'Turn off' : 'Turn on'}
           </Button>
         </div>
@@ -66,27 +66,71 @@ export function StepEditor({ target, track }: { target: StepEditorTarget; track:
         {def.melodic && (
           <Row label="Note" value={chordNotes ? chordNotes.map((n) => noteName(n, false)).join(' ') : undefined}>
             <div className="flex items-center gap-1">
-              <IconButton label="Octave down" tip="none" size="xs" variant="secondary" disabled={step.note - 12 < lo} onClick={() => set({ note: step.note - 12 })}>
+              <IconButton
+                label="Octave down"
+                tip="none"
+                size="xs"
+                variant="secondary"
+                disabled={step.note - 12 < lo}
+                onClick={() => set({ note: step.note - 12 })}
+              >
                 <span className="font-mono text-[9px] font-bold">−12</span>
               </IconButton>
-              <IconButton label="Semitone down" tip="none" size="xs" variant="secondary" disabled={step.note - 1 < lo} onClick={() => set({ note: step.note - 1 })}>
+              <IconButton
+                label="Semitone down"
+                tip="none"
+                size="xs"
+                variant="secondary"
+                disabled={step.note - 1 < lo}
+                onClick={() => set({ note: step.note - 1 })}
+              >
                 <Minus />
               </IconButton>
               <span className="flex-1 text-center font-mono text-sm font-semibold">{noteName(step.note)}</span>
-              <IconButton label="Semitone up" tip="none" size="xs" variant="secondary" disabled={step.note + 1 > hi} onClick={() => set({ note: step.note + 1 })}>
+              <IconButton
+                label="Semitone up"
+                tip="none"
+                size="xs"
+                variant="secondary"
+                disabled={step.note + 1 > hi}
+                onClick={() => set({ note: step.note + 1 })}
+              >
                 <Plus />
               </IconButton>
-              <IconButton label="Octave up" tip="none" size="xs" variant="secondary" disabled={step.note + 12 > hi} onClick={() => set({ note: step.note + 12 })}>
+              <IconButton
+                label="Octave up"
+                tip="none"
+                size="xs"
+                variant="secondary"
+                disabled={step.note + 12 > hi}
+                onClick={() => set({ note: step.note + 12 })}
+              >
                 <span className="font-mono text-[9px] font-bold">+12</span>
               </IconButton>
             </div>
           </Row>
         )}
         <Row label="Velocity" value={formatPercent(step.vel)}>
-          <Fader label="Velocity" value={step.vel} min={0.05} max={1} defaultValue={0.8} onChange={(v) => set({ vel: v }, 'vel')} format={formatPercent} />
+          <Fader
+            label="Velocity"
+            value={step.vel}
+            min={0.05}
+            max={1}
+            defaultValue={0.8}
+            onChange={(v) => set({ vel: v }, 'vel')}
+            format={formatPercent}
+          />
         </Row>
         <Row label="Chance" value={formatPercent(step.prob)}>
-          <Fader label="Chance" value={step.prob} min={0} max={1} defaultValue={1} onChange={(v) => set({ prob: v }, 'prob')} format={formatPercent} />
+          <Fader
+            label="Chance"
+            value={step.prob}
+            min={0}
+            max={1}
+            defaultValue={1}
+            onChange={(v) => set({ prob: v }, 'prob')}
+            format={formatPercent}
+          />
         </Row>
         <Row label="Repeat">
           <Segmented
@@ -100,7 +144,15 @@ export function StepEditor({ target, track }: { target: StepEditorTarget; track:
         </Row>
         {def.melodic && (
           <Row label="Length" value={`${step.len} step${step.len > 1 ? 's' : ''}`}>
-            <Fader label="Length" value={step.len} min={1} max={16} step={1} defaultValue={1} onChange={(v) => set({ len: v }, 'len')} />
+            <Fader
+              label="Length"
+              value={step.len}
+              min={1}
+              max={16}
+              step={1}
+              defaultValue={1}
+              onChange={(v) => set({ len: v }, 'len')}
+            />
           </Row>
         )}
       </div>

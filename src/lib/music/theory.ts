@@ -77,8 +77,7 @@ export function buildChord(midi: number, type: ChordType, root: number, scale: S
   if (type === 'off') return [midi];
   const intervals = SCALES[scale].intervals;
   // Pentatonic/blues scales don't stack thirds cleanly; borrow the parent heptatonic scale.
-  const harmonyScale: ScaleId =
-    intervals.length === 7 ? scale : scale === 'pentatonicMajor' ? 'major' : 'minor';
+  const harmonyScale: ScaleId = intervals.length === 7 ? scale : scale === 'pentatonicMajor' ? 'major' : 'minor';
   const size = type === 'triad' ? 3 : type === 'seventh' ? 4 : 5;
   const base = snapToScale(midi, root, harmonyScale);
   const notes: number[] = [];

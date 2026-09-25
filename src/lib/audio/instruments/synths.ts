@@ -44,14 +44,23 @@ export const bass808: VoiceFn = (ctx, out, { time, note, velocity, glideFrom }, 
   body.connect(amp).connect(drive).connect(lp).connect(v.output);
   v.source(body, end);
 
-  v.output.gain.value = velocityGain(velocity) * 0.58;
+  v.output.gain.value = velocityGain(velocity) * 0.44;
   return v.finish();
 };
 
 export const subBass: VoiceFn = (ctx, out, { time, note, velocity, duration }, p) => {
   const v = new VoiceBuilder(ctx, out, time);
   const freq = midiToFreq(note);
-  const end = gateEnvelope(v.output.gain, time, velocityGain(velocity) * 0.38, 0.006, 0.3, 0.85, time + duration, p.release);
+  const end = gateEnvelope(
+    v.output.gain,
+    time,
+    velocityGain(velocity) * 0.38,
+    0.006,
+    0.3,
+    0.85,
+    time + duration,
+    p.release,
+  );
 
   const sine = osc(ctx, 'sine', freq);
   const tri = osc(ctx, 'triangle', freq);

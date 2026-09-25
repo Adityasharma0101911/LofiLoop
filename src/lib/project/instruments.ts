@@ -157,11 +157,7 @@ export const INSTRUMENTS: Record<InstrumentId, InstrumentDef> = {
     defaultNote: 60,
     noteRange: DRUM_RANGE,
     gmNote: 39,
-    params: [
-      secs('decay', 'Decay', 0.08, 0.8, 0.28),
-      pct('tone', 'Tone', 0.5),
-      pct('spread', 'Spread', 0.5),
-    ],
+    params: [secs('decay', 'Decay', 0.08, 0.8, 0.28), pct('tone', 'Tone', 0.5), pct('spread', 'Spread', 0.5)],
   },
   hat: {
     id: 'hat',
@@ -175,11 +171,7 @@ export const INSTRUMENTS: Record<InstrumentId, InstrumentDef> = {
     defaultNote: 60,
     noteRange: DRUM_RANGE,
     gmNote: 42,
-    params: [
-      secs('decay', 'Decay', 0.02, 0.3, 0.06),
-      pct('tone', 'Tone', 0.55),
-      pct('metal', 'Metal', 0.5),
-    ],
+    params: [secs('decay', 'Decay', 0.02, 0.3, 0.06), pct('tone', 'Tone', 0.55), pct('metal', 'Metal', 0.5)],
   },
   openhat: {
     id: 'openhat',
@@ -193,11 +185,7 @@ export const INSTRUMENTS: Record<InstrumentId, InstrumentDef> = {
     defaultNote: 60,
     noteRange: DRUM_RANGE,
     gmNote: 46,
-    params: [
-      secs('decay', 'Decay', 0.15, 1.2, 0.42),
-      pct('tone', 'Tone', 0.5),
-      pct('metal', 'Metal', 0.55),
-    ],
+    params: [secs('decay', 'Decay', 0.15, 1.2, 0.42), pct('tone', 'Tone', 0.5), pct('metal', 'Metal', 0.55)],
   },
   rim: {
     id: 'rim',
@@ -210,11 +198,7 @@ export const INSTRUMENTS: Record<InstrumentId, InstrumentDef> = {
     defaultNote: 60,
     noteRange: DRUM_RANGE,
     gmNote: 37,
-    params: [
-      pct('tune', 'Tune', 0.5),
-      secs('decay', 'Decay', 0.02, 0.25, 0.07),
-      pct('tone', 'Tone', 0.5),
-    ],
+    params: [pct('tune', 'Tune', 0.5), secs('decay', 'Decay', 0.02, 0.25, 0.07), pct('tone', 'Tone', 0.5)],
   },
   shaker: {
     id: 'shaker',
@@ -227,11 +211,7 @@ export const INSTRUMENTS: Record<InstrumentId, InstrumentDef> = {
     defaultNote: 60,
     noteRange: DRUM_RANGE,
     gmNote: 70,
-    params: [
-      secs('decay', 'Decay', 0.03, 0.3, 0.09),
-      pct('tone', 'Tone', 0.55),
-      pct('swell', 'Swell', 0.4),
-    ],
+    params: [secs('decay', 'Decay', 0.03, 0.3, 0.09), pct('tone', 'Tone', 0.55), pct('swell', 'Swell', 0.4)],
   },
   tom: {
     id: 'tom',
@@ -244,11 +224,7 @@ export const INSTRUMENTS: Record<InstrumentId, InstrumentDef> = {
     defaultNote: 60,
     noteRange: DRUM_RANGE,
     gmNote: 45,
-    params: [
-      hz('tune', 'Tune', 60, 420, 150),
-      secs('decay', 'Decay', 0.08, 1, 0.32),
-      pct('bend', 'Bend', 0.4),
-    ],
+    params: [hz('tune', 'Tune', 60, 420, 150), secs('decay', 'Decay', 0.08, 1, 0.32), pct('bend', 'Bend', 0.4)],
   },
   crash: {
     id: 'crash',
@@ -307,11 +283,7 @@ export const INSTRUMENTS: Record<InstrumentId, InstrumentDef> = {
     polyphonic: true,
     defaultNote: 72,
     noteRange: [48, 96],
-    params: [
-      pct('cutoff', 'Cutoff', 0.5),
-      secs('decay', 'Decay', 0.05, 1.5, 0.35),
-      pct('resonance', 'Reso', 0.3),
-    ],
+    params: [pct('cutoff', 'Cutoff', 0.5), secs('decay', 'Decay', 0.05, 1.5, 0.35), pct('resonance', 'Reso', 0.3)],
   },
   bell: {
     id: 'bell',
@@ -355,11 +327,7 @@ export const INSTRUMENTS: Record<InstrumentId, InstrumentDef> = {
     mono: true,
     defaultNote: 36,
     noteRange: [24, 55],
-    params: [
-      pct('tone', 'Tone', 0.35),
-      pct('drive', 'Drive', 0.2),
-      secs('release', 'Release', 0.02, 1, 0.12),
-    ],
+    params: [pct('tone', 'Tone', 0.35), pct('drive', 'Drive', 0.2), secs('release', 'Release', 0.02, 1, 0.12)],
   },
 };
 

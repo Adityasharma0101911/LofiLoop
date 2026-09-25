@@ -11,10 +11,10 @@ import { formatPercent } from '@/lib/utils/format';
 
 function Card({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-line bg-surface-2/50 p-3">
+    <section className="border-line bg-surface-2/50 rounded-xl border p-3">
       <header className="mb-3">
         <h3 className="text-sm font-semibold">{title}</h3>
-        <p className="text-xs text-fg-subtle">{subtitle}</p>
+        <p className="text-fg-subtle text-xs">{subtitle}</p>
       </header>
       {children}
     </section>
@@ -45,20 +45,100 @@ export function FxPanel() {
       </div>
       <Card title="Tape" subtitle="The lofi character: warmth, wobble and dust">
         <div className="grid grid-cols-3 gap-y-3">
-          <Knob label="Tone" value={fx.tone} min={0} max={1} defaultValue={d.tone} format={(v) => `${(toneFrequency(v) / 1000).toFixed(1)}k`} onChange={(v) => set({ tone: v })} />
-          <Knob label="Drive" value={fx.drive} min={0} max={1} defaultValue={d.drive} format={formatPercent} onChange={(v) => set({ drive: v })} />
-          <Knob label="Wow" value={fx.wow} min={0} max={1} defaultValue={d.wow} format={formatPercent} onChange={(v) => set({ wow: v })} />
-          <Knob label="Crackle" value={fx.crackle} min={0} max={1} defaultValue={d.crackle} format={formatPercent} onChange={(v) => set({ crackle: v })} />
-          <Knob label="Crush" value={fx.crush} min={0} max={1} defaultValue={0} format={(v) => (v < 0.01 ? 'Off' : `${Math.round(14 - v * 10)} bit`)} onChange={(v) => set({ crush: v })} />
-          <Knob label="Glue" value={fx.glue} min={0} max={1} defaultValue={d.glue} format={formatPercent} onChange={(v) => set({ glue: v })} />
+          <Knob
+            label="Tone"
+            value={fx.tone}
+            min={0}
+            max={1}
+            defaultValue={d.tone}
+            format={(v) => `${(toneFrequency(v) / 1000).toFixed(1)}k`}
+            onChange={(v) => set({ tone: v })}
+          />
+          <Knob
+            label="Drive"
+            value={fx.drive}
+            min={0}
+            max={1}
+            defaultValue={d.drive}
+            format={formatPercent}
+            onChange={(v) => set({ drive: v })}
+          />
+          <Knob
+            label="Wow"
+            value={fx.wow}
+            min={0}
+            max={1}
+            defaultValue={d.wow}
+            format={formatPercent}
+            onChange={(v) => set({ wow: v })}
+          />
+          <Knob
+            label="Crackle"
+            value={fx.crackle}
+            min={0}
+            max={1}
+            defaultValue={d.crackle}
+            format={formatPercent}
+            onChange={(v) => set({ crackle: v })}
+          />
+          <Knob
+            label="Crush"
+            value={fx.crush}
+            min={0}
+            max={1}
+            defaultValue={0}
+            format={(v) => (v < 0.01 ? 'Off' : `${Math.round(14 - v * 10)} bit`)}
+            onChange={(v) => set({ crush: v })}
+          />
+          <Knob
+            label="Glue"
+            value={fx.glue}
+            min={0}
+            max={1}
+            defaultValue={d.glue}
+            format={formatPercent}
+            onChange={(v) => set({ glue: v })}
+          />
         </div>
       </Card>
       <Card title="Space" subtitle="Send levels live on each track's Mix knobs">
         <div className="grid grid-cols-4 gap-y-3">
-          <Knob label="Room" value={fx.reverbSize} min={0} max={1} defaultValue={d.reverbSize} format={(v) => `${reverbSeconds(v).toFixed(1)} s`} onChange={(v) => set({ reverbSize: v })} />
-          <Knob label="Reverb" value={fx.reverbMix} min={0} max={1} defaultValue={d.reverbMix} format={formatPercent} onChange={(v) => set({ reverbMix: v })} />
-          <Knob label="Echo" value={fx.delayMix} min={0} max={1} defaultValue={d.delayMix} format={formatPercent} onChange={(v) => set({ delayMix: v })} />
-          <Knob label="Feedback" value={fx.delayFeedback} min={0} max={0.9} defaultValue={d.delayFeedback} format={formatPercent} onChange={(v) => set({ delayFeedback: v })} />
+          <Knob
+            label="Room"
+            value={fx.reverbSize}
+            min={0}
+            max={1}
+            defaultValue={d.reverbSize}
+            format={(v) => `${reverbSeconds(v).toFixed(1)} s`}
+            onChange={(v) => set({ reverbSize: v })}
+          />
+          <Knob
+            label="Reverb"
+            value={fx.reverbMix}
+            min={0}
+            max={1}
+            defaultValue={d.reverbMix}
+            format={formatPercent}
+            onChange={(v) => set({ reverbMix: v })}
+          />
+          <Knob
+            label="Echo"
+            value={fx.delayMix}
+            min={0}
+            max={1}
+            defaultValue={d.delayMix}
+            format={formatPercent}
+            onChange={(v) => set({ delayMix: v })}
+          />
+          <Knob
+            label="Feedback"
+            value={fx.delayFeedback}
+            min={0}
+            max={0.9}
+            defaultValue={d.delayFeedback}
+            format={formatPercent}
+            onChange={(v) => set({ delayFeedback: v })}
+          />
         </div>
         <div className="mt-3">
           <Segmented
@@ -72,7 +152,15 @@ export function FxPanel() {
         </div>
       </Card>
       <Card title="Master" subtitle="Output level after the safety limiter">
-        <Knob label="Volume" value={volume} min={0} max={1} defaultValue={0.8} format={formatPercent} onChange={actions.setVolume} />
+        <Knob
+          label="Volume"
+          value={volume}
+          min={0}
+          max={1}
+          defaultValue={0.8}
+          format={formatPercent}
+          onChange={actions.setVolume}
+        />
       </Card>
     </div>
   );

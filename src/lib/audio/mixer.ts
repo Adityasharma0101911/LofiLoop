@@ -30,6 +30,8 @@ export interface MixerOptions {
 }
 
 const SMOOTHING = 0.015;
+/** About -5 dB of mix-bus headroom. */
+const BUS_TRIM = 0.56;
 
 export class Mixer {
   readonly ctx: BaseAudioContext;
@@ -117,10 +119,13 @@ export class Mixer {
     this.driveShaper = ctx.createWaveShaper();
     this.driveShaper.oversample = '2x';
     this.drivePost = ctx.createGain();
-    this.sum.connect(this.drivePre);
-    this.reverbReturn.connect(this.drivePre);
-    this.delayReturn.connect(this.drivePre);
-    this.drivePre.connect(this.driveShaper).connect(this.drivePost);
+    // A full kit summed at unity overdrives the bus; trim it so the limiter only catches peaks.
+    const busTrim = ctx.createGain();
+    busTrim.gain.value = BUS_TRIM;
+    this.sum.connect(busTrim);
+    this.reverbReturn.connect(busTrim);
+    this.delayReturn.connect(busTrim);
+    busTrim.connect(this.drivePre).connect(this.driveShaper).connect(this.drivePost);
 
     // Bit crusher (dry/wet so it can be fully bypassed)
     this.crushDry = ctx.createGain();

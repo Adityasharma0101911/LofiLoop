@@ -126,9 +126,7 @@ export function toProjectFile(project: Project): ProjectFile {
         id: p.id,
         name: p.name,
         length: p.length,
-        hits: Object.fromEntries(
-          project.tracks.map((t) => [t.id, encodeHits(p.steps[t.id] ?? [])]),
-        ),
+        hits: Object.fromEntries(project.tracks.map((t) => [t.id, encodeHits(p.steps[t.id] ?? [])])),
       })),
       activePatternId: project.activePatternId,
       playMode: project.playMode,
@@ -285,4 +283,3 @@ export function parseProjectFile(input: unknown): Project {
     updatedAt: raw.updatedAt ?? now,
   };
 }
-

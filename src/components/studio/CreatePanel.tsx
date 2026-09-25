@@ -42,10 +42,10 @@ import { InstrumentBadge } from './InstrumentPicker';
 
 function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-line bg-surface-2/50 p-3">
+    <section className="border-line bg-surface-2/50 rounded-xl border p-3">
       <header className="mb-2.5">
         <h3 className="text-sm font-semibold">{title}</h3>
-        {hint && <p className="text-xs text-fg-subtle">{hint}</p>}
+        {hint && <p className="text-fg-subtle text-xs">{hint}</p>}
       </header>
       {children}
     </section>
@@ -138,11 +138,16 @@ export function CreatePanel() {
           <Button variant="primary" size="sm" icon={<Sparkles />} onClick={newBeat}>
             New beat
           </Button>
-          <Button size="sm" icon={<Dices />} onClick={fillPattern} title={`Regenerate pattern ${pattern.name} with the current tracks`}>
+          <Button
+            size="sm"
+            icon={<Dices />}
+            onClick={fillPattern}
+            title={`Regenerate pattern ${pattern.name} with the current tracks`}
+          >
             Fill pattern {pattern.name}
           </Button>
         </div>
-        <p className="mt-2 text-[11px] text-fg-subtle">
+        <p className="text-fg-subtle mt-2 text-[11px]">
           New beat opens a fresh project (your current one stays in the library). Fill only rewrites unlocked tracks.
         </p>
         <ul className="mt-2 flex flex-wrap gap-1" aria-label="Keep tracks when filling">
@@ -157,7 +162,9 @@ export function CreatePanel() {
                   title={isLocked ? `${t.name} is kept when filling` : `Keep ${t.name} when filling`}
                   className={cn(
                     'flex h-6 items-center gap-1 rounded-md border px-1.5 text-[11px] transition-colors',
-                    isLocked ? 'border-accent/60 bg-accent-soft text-accent' : 'border-line text-fg-muted hover:text-fg',
+                    isLocked
+                      ? 'border-accent/60 bg-accent-soft text-accent'
+                      : 'border-line text-fg-muted hover:text-fg',
                   )}
                 >
                   {isLocked ? <Lock className="size-3" /> : <LockOpen className="size-3" />}
@@ -175,16 +182,24 @@ export function CreatePanel() {
             <div className="mb-3 flex items-center gap-2">
               <InstrumentBadge id={track.instrument} />
               <span className="truncate text-sm font-medium">{track.name}</span>
-              <span className="ml-auto text-[11px] text-fg-subtle">pattern {pattern.name}</span>
+              <span className="text-fg-subtle ml-auto text-[11px]">pattern {pattern.name}</span>
             </div>
             <div className="grid grid-cols-2 gap-1.5">
               <Button size="sm" icon={<Wand2 />} onClick={rerollTrack}>
                 Re-roll part
               </Button>
-              <Button size="sm" icon={<Shuffle />} onClick={() => transform((s, l) => mutate(s, l, 0.35, createRng(randomSeed()), notePool()))}>
+              <Button
+                size="sm"
+                icon={<Shuffle />}
+                onClick={() => transform((s, l) => mutate(s, l, 0.35, createRng(randomSeed()), notePool()))}
+              >
                 Mutate
               </Button>
-              <Button size="sm" icon={<Waves />} onClick={() => transform((s, l) => humanize(s, l, 0.5, createRng(randomSeed())))}>
+              <Button
+                size="sm"
+                icon={<Waves />}
+                onClick={() => transform((s, l) => humanize(s, l, 0.5, createRng(randomSeed())))}
+              >
                 Humanize
               </Button>
               <Button size="sm" icon={<FlipHorizontal2 />} onClick={() => transform(reverseSteps)}>
@@ -210,14 +225,21 @@ export function CreatePanel() {
               </Button>
             </div>
 
-            <div className="mt-4 rounded-lg bg-surface-3/40 p-2.5">
+            <div className="bg-surface-3/40 mt-4 rounded-lg p-2.5">
               <div className="mb-2 flex items-center justify-between">
                 <span className="text-xs font-semibold">Euclidean rhythm</span>
-                <span className="font-mono text-[11px] text-fg-muted">
+                <span className="text-fg-muted font-mono text-[11px]">
                   {Math.min(hits, pattern.length)} hits · rotate {rotate}
                 </span>
               </div>
-              <Fader label="Hits" value={Math.min(hits, pattern.length)} min={0} max={pattern.length} step={1} onChange={setHits} />
+              <Fader
+                label="Hits"
+                value={Math.min(hits, pattern.length)}
+                min={0}
+                max={pattern.length}
+                step={1}
+                onChange={setHits}
+              />
               <Fader label="Rotation" value={rotate} min={0} max={pattern.length - 1} step={1} onChange={setRotate} />
               <Button
                 size="sm"

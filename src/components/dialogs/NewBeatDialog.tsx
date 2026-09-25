@@ -47,10 +47,10 @@ export function NewBeatDialog() {
             <button
               type="button"
               onClick={() => start(t.create())}
-              className="flex h-full w-full flex-col items-start gap-1 rounded-xl border border-line bg-surface-2 p-3.5 text-left transition-colors hover:border-accent/60 hover:bg-accent-soft"
+              className="border-line bg-surface-2 hover:border-accent/60 hover:bg-accent-soft flex h-full w-full flex-col items-start gap-1 rounded-xl border p-3.5 text-left transition-colors"
             >
               <span className="text-sm font-semibold">{t.name}</span>
-              <span className="text-xs leading-relaxed text-fg-muted">{t.description}</span>
+              <span className="text-fg-muted text-xs leading-relaxed">{t.description}</span>
             </button>
           </li>
         ))}

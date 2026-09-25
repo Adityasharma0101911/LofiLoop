@@ -54,13 +54,7 @@ export function euclid(hits: number, length: number, rotation = 0): boolean[] {
  * Replace the rhythm with a Euclidean one. Hits that land on an already-on
  * step keep its note and velocity; new hits use `note`.
  */
-export function applyEuclid(
-  steps: Step[],
-  length: number,
-  hits: number,
-  rotation: number,
-  note: number,
-): Step[] {
+export function applyEuclid(steps: Step[], length: number, hits: number, rotation: number, note: number): Step[] {
   const out = copy(steps);
   const n = span(steps, length);
   const pattern = euclid(hits, n, rotation);
@@ -152,13 +146,7 @@ function nearestIndex(pool: number[], note: number): number {
  * `notePool` (e.g. scale notes) is given, nudges notes to a neighbouring pool note.
  * `amount` 0..1 scales how much changes.
  */
-export function mutate(
-  steps: Step[],
-  length: number,
-  amount: number,
-  rng: Rng,
-  notePool?: number[],
-): Step[] {
+export function mutate(steps: Step[], length: number, amount: number, rng: Rng, notePool?: number[]): Step[] {
   const out = copy(steps);
   const n = span(steps, length);
   const a = clamp(amount, 0, 1);

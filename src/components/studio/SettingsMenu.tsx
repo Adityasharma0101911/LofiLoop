@@ -30,7 +30,7 @@ export function SettingsMenu() {
       </IconButton>
       {anchor && (
         <Popover anchor={anchor} onClose={close} label="Settings" className="w-72">
-          <p className="mb-2 text-[10px] font-semibold tracking-widest text-fg-subtle uppercase">Theme</p>
+          <p className="text-fg-subtle mb-2 text-[10px] font-semibold tracking-widest uppercase">Theme</p>
           <div className="grid grid-cols-5 gap-1.5">
             {THEMES.map((t) => (
               <button
@@ -40,13 +40,13 @@ export function SettingsMenu() {
                 aria-pressed={t.id === theme}
                 title={t.name}
                 className={cn(
-                  'group flex flex-col items-center gap-1 rounded-lg p-1.5 text-[10px] font-medium transition-colors hover:bg-surface-3',
+                  'group hover:bg-surface-3 flex flex-col items-center gap-1 rounded-lg p-1.5 text-[10px] font-medium transition-colors',
                   t.id === theme ? 'text-fg' : 'text-fg-muted',
                 )}
               >
                 <span
                   className={cn(
-                    'relative flex size-8 items-center justify-center rounded-full ring-2 ring-offset-2 ring-offset-surface-2',
+                    'ring-offset-surface-2 relative flex size-8 items-center justify-center rounded-full ring-2 ring-offset-2',
                     t.id === theme ? 'ring-accent' : 'ring-transparent',
                   )}
                   style={{ background: `linear-gradient(135deg, ${t.swatch[0]} 50%, ${t.swatch[1]} 50%)` }}
@@ -57,7 +57,7 @@ export function SettingsMenu() {
               </button>
             ))}
           </div>
-          <div className="mt-3 border-t border-line pt-2">
+          <div className="border-line mt-3 border-t pt-2">
             <Switch
               checked={audition}
               onChange={(v) => ui.set({ audition: v })}

@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { createId } from '@/lib/utils/id';
 import { decodeShareData, readShareHash } from '@/lib/project/share';
-import { actions } from '@/lib/store/studio';
+import { actions, useStudio } from '@/lib/store/studio';
 import { ui } from '@/lib/store/ui';
 import { useHotkeys } from '@/hooks/useHotkeys';
 import { useMeters } from '@/hooks/useMeters';
@@ -56,13 +56,17 @@ function useSpaceGuard() {
 
 export default function Studio() {
   const playing = useIsPlaying();
+  const name = useStudio((s) => s.project.name);
+  useEffect(() => {
+    document.title = `${name} · LofiLoop`;
+  }, [name]);
   useHotkeys();
   useSpaceGuard();
   useSharedBeat();
   useMeters(playing);
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-bg text-fg">
+    <div className="bg-bg text-fg flex h-dvh flex-col overflow-hidden">
       <TopBar />
       <div className="flex min-h-0 flex-1">
         <main className="flex min-w-0 flex-1 flex-col">

@@ -54,9 +54,9 @@ export function TempoControl({ compact = false }: { compact?: boolean }) {
   };
 
   return (
-    <div ref={ref} className="flex items-center gap-1 rounded-lg bg-surface-2 p-0.5 pl-2.5">
+    <div ref={ref} className="bg-surface-2 flex items-center gap-1 rounded-lg p-0.5 pl-2.5">
       <div className="flex flex-col">
-        {!compact && <span className="text-[9px] leading-none font-semibold tracking-widest text-fg-subtle">BPM</span>}
+        {!compact && <span className="text-fg-subtle text-[9px] leading-none font-semibold tracking-widest">BPM</span>}
         {editing ? (
           <input
             autoFocus
@@ -98,7 +98,7 @@ export function TempoControl({ compact = false }: { compact?: boolean }) {
           if (next) actions.setBpm(next);
         }}
         className={cn(
-          'h-8 rounded-md px-2 text-[10px] font-bold tracking-widest text-fg-muted transition-colors hover:bg-surface-3 hover:text-fg active:bg-accent-soft active:text-accent',
+          'text-fg-muted hover:bg-surface-3 hover:text-fg active:bg-accent-soft active:text-accent h-8 rounded-md px-2 text-[10px] font-bold tracking-widest transition-colors',
         )}
         title="Tap tempo (T)"
       >
@@ -107,4 +107,3 @@ export function TempoControl({ compact = false }: { compact?: boolean }) {
     </div>
   );
 }
-

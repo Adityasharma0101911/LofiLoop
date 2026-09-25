@@ -83,9 +83,11 @@ export function crackleBuffer(ctx: BaseAudioContext): AudioBuffer {
     }
   };
   const ticks = Math.floor(6 * 28);
-  for (let i = 0; i < ticks; i++) addClick(Math.floor(rand() * length), 0.05 + rand() * 0.2, 6 + Math.floor(rand() * 10));
+  for (let i = 0; i < ticks; i++)
+    addClick(Math.floor(rand() * length), 0.05 + rand() * 0.2, 6 + Math.floor(rand() * 10));
   const pops = 7;
-  for (let i = 0; i < pops; i++) addClick(Math.floor(rand() * length), 0.4 + rand() * 0.4, 30 + Math.floor(rand() * 40));
+  for (let i = 0; i < pops; i++)
+    addClick(Math.floor(rand() * length), 0.4 + rand() * 0.4, 30 + Math.floor(rand() * 40));
   crackleCache.set(ctx, buffer);
   return buffer;
 }

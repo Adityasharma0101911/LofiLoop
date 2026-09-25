@@ -37,7 +37,10 @@ export function MixerPanel() {
                 aria-pressed={t.mute}
                 aria-label={`Mute ${t.name}`}
                 onClick={() => actions.toggleMute(t.id)}
-                className={cn('size-6 rounded-md text-[11px] font-bold', t.mute ? 'bg-danger text-white' : 'bg-surface-3 text-fg-subtle hover:text-fg')}
+                className={cn(
+                  'size-6 rounded-md text-[11px] font-bold',
+                  t.mute ? 'bg-danger text-white' : 'bg-surface-3 text-fg-subtle hover:text-fg',
+                )}
               >
                 M
               </button>
@@ -46,22 +49,31 @@ export function MixerPanel() {
                 aria-pressed={t.solo}
                 aria-label={`Solo ${t.name}`}
                 onClick={(e) => actions.toggleSolo(t.id, e.altKey)}
-                className={cn('size-6 rounded-md text-[11px] font-bold', t.solo ? 'bg-warn text-black' : 'bg-surface-3 text-fg-subtle hover:text-fg')}
+                className={cn(
+                  'size-6 rounded-md text-[11px] font-bold',
+                  t.solo ? 'bg-warn text-black' : 'bg-surface-3 text-fg-subtle hover:text-fg',
+                )}
               >
                 S
               </button>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex flex-1 flex-col gap-0.5">
-                <div className="flex justify-between text-[10px] text-fg-subtle">
+                <div className="text-fg-subtle flex justify-between text-[10px]">
                   <span>Volume</span>
                   <span className="font-mono">{formatPercent(t.volume)}</span>
                 </div>
-                <Fader label={`${t.name} volume`} value={t.volume} defaultValue={0.8} onChange={(v) => actions.updateTrack(t.id, { volume: v })} format={formatPercent} />
+                <Fader
+                  label={`${t.name} volume`}
+                  value={t.volume}
+                  defaultValue={0.8}
+                  onChange={(v) => actions.updateTrack(t.id, { volume: v })}
+                  format={formatPercent}
+                />
                 <span
                   data-meter={t.id}
                   aria-hidden
-                  className="relative mt-0.5 h-1 overflow-hidden rounded-full bg-surface-3 [--level:0]"
+                  className="bg-surface-3 relative mt-0.5 h-1 overflow-hidden rounded-full [--level:0]"
                 >
                   <span
                     className="absolute inset-y-0 left-0 w-full origin-left rounded-full"
@@ -69,9 +81,37 @@ export function MixerPanel() {
                   />
                 </span>
               </div>
-              <Knob label="Pan" size={32} value={t.pan} min={-1} max={1} defaultValue={0} bipolar format={formatPan} onChange={(v) => actions.updateTrack(t.id, { pan: v })} />
-              <Knob label="Verb" size={32} value={t.reverb} min={0} max={1} defaultValue={0} format={formatPercent} onChange={(v) => actions.updateTrack(t.id, { reverb: v })} />
-              <Knob label="Echo" size={32} value={t.delay} min={0} max={1} defaultValue={0} format={formatPercent} onChange={(v) => actions.updateTrack(t.id, { delay: v })} />
+              <Knob
+                label="Pan"
+                size={32}
+                value={t.pan}
+                min={-1}
+                max={1}
+                defaultValue={0}
+                bipolar
+                format={formatPan}
+                onChange={(v) => actions.updateTrack(t.id, { pan: v })}
+              />
+              <Knob
+                label="Verb"
+                size={32}
+                value={t.reverb}
+                min={0}
+                max={1}
+                defaultValue={0}
+                format={formatPercent}
+                onChange={(v) => actions.updateTrack(t.id, { reverb: v })}
+              />
+              <Knob
+                label="Echo"
+                size={32}
+                value={t.delay}
+                min={0}
+                max={1}
+                defaultValue={0}
+                format={formatPercent}
+                onChange={(v) => actions.updateTrack(t.id, { delay: v })}
+              />
             </div>
           </li>
         );

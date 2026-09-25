@@ -124,9 +124,7 @@ export interface PatternSlot {
 export function renderSlots(project: Project, mode: 'pattern' | 'song', repeats: number): PatternSlot[] {
   const dur = stepDuration(project.bpm);
   const ids =
-    mode === 'song'
-      ? songOrder(project)
-      : [getPattern(project, project.activePatternId)?.id ?? project.patterns[0].id];
+    mode === 'song' ? songOrder(project) : [getPattern(project, project.activePatternId)?.id ?? project.patterns[0].id];
   const slots: PatternSlot[] = [];
   let t = 0;
   for (let r = 0; r < Math.max(1, repeats); r++) {
@@ -147,12 +145,7 @@ export function slotsDuration(project: Project, slots: PatternSlot[]): number {
 }
 
 /** Collect every event for a render/export pass. */
-export function collectEvents(
-  project: Project,
-  slots: PatternSlot[],
-  options: EventOptions,
-  offset = 0,
-): NoteEvent[] {
+export function collectEvents(project: Project, slots: PatternSlot[], options: EventOptions, offset = 0): NoteEvent[] {
   const dur = stepDuration(project.bpm);
   const events: NoteEvent[] = [];
   for (const slot of slots) {

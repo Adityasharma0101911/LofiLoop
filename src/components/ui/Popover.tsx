@@ -62,7 +62,7 @@ export function Popover({ anchor, onClose, children, className, label }: Popover
       role="dialog"
       aria-label={label}
       className={cn(
-        'fixed z-50 rounded-xl border border-line-strong bg-surface-2 p-3 shadow-2xl shadow-black/40 animate-pop-in',
+        'border-line-strong bg-surface-2 animate-pop-in fixed z-50 rounded-xl border p-3 shadow-2xl shadow-black/40',
         !pos && 'invisible',
         className,
       )}

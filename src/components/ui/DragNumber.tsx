@@ -82,9 +82,9 @@ export function DragNumber({
           set(value + dir * step * (e.shiftKey ? 5 : 1));
         }
       }}
-      className="flex h-9 cursor-ns-resize touch-none flex-col items-start justify-center rounded-lg bg-surface-2 px-2.5 hover:bg-surface-3"
+      className="bg-surface-2 hover:bg-surface-3 flex h-9 cursor-ns-resize touch-none flex-col items-start justify-center rounded-lg px-2.5"
     >
-      <span className="text-[9px] leading-none font-semibold tracking-widest text-fg-subtle uppercase">{label}</span>
+      <span className="text-fg-subtle text-[9px] leading-none font-semibold tracking-widest uppercase">{label}</span>
       <span className="font-mono text-sm leading-tight font-semibold tabular-nums">{format(value)}</span>
     </button>
   );

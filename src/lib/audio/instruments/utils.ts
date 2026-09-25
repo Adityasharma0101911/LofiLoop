@@ -174,12 +174,7 @@ export function shaper(ctx: BaseAudioContext, curve: Float32Array<ArrayBuffer>):
   return node;
 }
 
-export function filter(
-  ctx: BaseAudioContext,
-  type: BiquadFilterType,
-  frequency: number,
-  q = 0.707,
-): BiquadFilterNode {
+export function filter(ctx: BaseAudioContext, type: BiquadFilterType, frequency: number, q = 0.707): BiquadFilterNode {
   const node = ctx.createBiquadFilter();
   node.type = type;
   node.frequency.value = Math.min(frequency, ctx.sampleRate / 2 - 100);

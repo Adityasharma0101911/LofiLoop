@@ -1,14 +1,29 @@
 'use client';
 
-import { CATEGORY_LABELS, INSTRUMENT_LIST, type InstrumentCategory, type InstrumentId } from '@/lib/project/instruments';
+import {
+  CATEGORY_LABELS,
+  INSTRUMENT_LIST,
+  type InstrumentCategory,
+  type InstrumentId,
+} from '@/lib/project/instruments';
 import { cn } from '@/lib/utils/cn';
 
-export function InstrumentBadge({ id, className, onClick }: { id: InstrumentId; className?: string; onClick?: () => void }) {
+export function InstrumentBadge({
+  id,
+  className,
+  onClick,
+}: {
+  id: InstrumentId;
+  className?: string;
+  onClick?: () => void;
+}) {
   const def = INSTRUMENT_LIST.find((i) => i.id === id)!;
   const Tag = onClick ? 'button' : 'span';
   return (
     <Tag
-      {...(onClick ? { type: 'button' as const, onClick, 'aria-label': `Preview ${def.name}`, title: `Preview ${def.name}` } : {})}
+      {...(onClick
+        ? { type: 'button' as const, onClick, 'aria-label': `Preview ${def.name}`, title: `Preview ${def.name}` }
+        : {})}
       className={cn(
         'inline-flex h-6 min-w-9 shrink-0 items-center justify-center rounded-md px-1 font-mono text-[10px] font-bold tracking-wide text-black/80 transition-transform',
         onClick && 'hover:scale-105 active:scale-95',
@@ -36,7 +51,7 @@ export function InstrumentPicker({
     <div className="flex flex-col gap-3">
       {ORDER.map((category) => (
         <section key={category}>
-          <h3 className="mb-1.5 text-[10px] font-semibold tracking-widest text-fg-subtle uppercase">
+          <h3 className="text-fg-subtle mb-1.5 text-[10px] font-semibold tracking-widest uppercase">
             {CATEGORY_LABELS[category]}
           </h3>
           <div className="grid grid-cols-2 gap-1">
@@ -49,7 +64,7 @@ export function InstrumentPicker({
                 onClick={() => onSelect(inst.id)}
                 className={cn(
                   'flex h-9 items-center gap-2 rounded-lg px-1.5 text-left text-[13px] transition-colors disabled:opacity-40',
-                  inst.id === value ? 'bg-accent-soft text-fg ring-1 ring-accent/50' : 'hover:bg-surface-3',
+                  inst.id === value ? 'bg-accent-soft text-fg ring-accent/50 ring-1' : 'hover:bg-surface-3',
                 )}
               >
                 <InstrumentBadge id={inst.id} />

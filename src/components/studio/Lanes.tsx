@@ -39,12 +39,14 @@ export function Lanes({ track, pattern }: { track: Track; pattern: Pattern }) {
             { value: 'prob', label: 'Chance' },
           ]}
         />
-        <p className="text-xs text-fg-subtle">Drag across the bars to draw {lane === 'vel' ? 'dynamics' : 'how often each step plays'}.</p>
+        <p className="text-fg-subtle text-xs">
+          Drag across the bars to draw {lane === 'vel' ? 'dynamics' : 'how often each step plays'}.
+        </p>
       </div>
       <div
         role="group"
         aria-label={`${track.name} ${lane === 'vel' ? 'velocity' : 'chance'} lane`}
-        className="relative grid min-h-0 flex-1 touch-none gap-[3px] rounded-lg bg-surface-2/60 p-1 select-none"
+        className="bg-surface-2/60 relative grid min-h-0 flex-1 touch-none gap-[3px] rounded-lg p-1 select-none"
         style={{ gridTemplateColumns: `repeat(${len}, minmax(0, 1fr))` }}
         onPointerDown={(e) => {
           e.currentTarget.setPointerCapture(e.pointerId);
@@ -58,7 +60,10 @@ export function Lanes({ track, pattern }: { track: Track; pattern: Pattern }) {
         {steps.slice(0, len).map((step, i) => {
           const value = lane === 'vel' ? step.vel : step.prob;
           return (
-            <div key={i} className={cn('relative flex items-end rounded-sm', Math.floor(i / 4) % 2 ? 'bg-step-alt' : 'bg-step')}>
+            <div
+              key={i}
+              className={cn('relative flex items-end rounded-sm', Math.floor(i / 4) % 2 ? 'bg-step-alt' : 'bg-step')}
+            >
               {step.on && (
                 <div
                   className="w-full rounded-sm"
