@@ -1,0 +1,112 @@
+'use client';
+
+import { useCallback, useState } from 'react';
+import { ChevronDown, Play, RotateCcw } from 'lucide-react';
+import { engine } from '@/lib/audio/engine';
+import type { ChordType } from '@/lib/music/theory';
+import { INSTRUMENTS } from '@/lib/project/instruments';
+import type { Track } from '@/lib/project/types';
+import { actions } from '@/lib/store/studio';
+import { Button } from '@/components/ui/Button';
+import { Knob } from '@/components/ui/Knob';
+import { Popover } from '@/components/ui/Popover';
+import { Segmented } from '@/components/ui/Segmented';
+import { formatPan, formatParam } from '@/lib/utils/params';
+import { formatPercent } from '@/lib/utils/format';
+import { InstrumentBadge, InstrumentPicker } from './InstrumentPicker';
+
+const CHORDS: { value: ChordType; label: string; title: string }[] = [
+  { value: 'off', label: 'Single', title: 'Play single notes' },
+  { value: 'triad', label: 'Triad', title: 'Diatonic 3-note chords' },
+  { value: 'seventh', label: '7th', title: 'Diatonic 7th chords' },
+  { value: 'ninth', label: '9th', title: 'Diatonic 9th chords' },
+];
+
+function Section({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
+  return (
+    <section className={className}>
+      <h3 className="mb-2 text-[10px] font-semibold tracking-widest text-fg-subtle uppercase">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+export function SoundPanel({ track }: { track: Track }) {
+  const def = INSTRUMENTS[track.instrument];
+  const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
+  const close = useCallback(() => setAnchor(null), []);
+
+  return (
+    <div className="flex flex-wrap items-start gap-x-8 gap-y-4 p-4">
+      <Section title="Instrument" className="w-full sm:w-52">
+        <button
+          type="button"
+          onClick={(e) => {
+            const r = e.currentTarget.getBoundingClientRect();
+            setAnchor(anchor ? null : { x: r.left + 170, y: r.bottom });
+          }}
+          className="flex h-10 w-full items-center gap-2 rounded-lg border border-line bg-surface-2 px-2 text-left text-sm font-medium hover:border-line-strong"
+        >
+          <InstrumentBadge id={track.instrument} />
+          <span className="flex-1 truncate">{def.name}</span>
+          <ChevronDown className="size-4 text-fg-subtle" />
+        </button>
+        <div className="mt-2 flex gap-1.5">
+          <Button size="sm" icon={<Play />} onClick={() => void engine.preview(track)} className="flex-1">
+            Preview
+          </Button>
+          <Button size="sm" variant="ghost" icon={<RotateCcw />} onClick={() => actions.resetParams(track.id)} title="Reset sound to default">
+            Reset
+          </Button>
+        </div>
+        {anchor && (
+          <Popover anchor={anchor} onClose={close} label="Change instrument" className="w-[340px]">
+            <InstrumentPicker
+              value={track.instrument}
+              onSelect={(id) => {
+                actions.changeInstrument(track.id, id);
+                close();
+              }}
+            />
+          </Popover>
+        )}
+      </Section>
+
+      <Section title="Sound">
+        <div className="flex flex-wrap gap-3">
+          {def.params.map((p) => (
+            <Knob
+              key={p.id}
+              label={p.label}
+              value={track.params[p.id] ?? p.default}
+              min={p.min}
+              max={p.max}
+              step={p.step}
+              defaultValue={p.default}
+              log={p.unit === 'hz' || (p.unit === 's' && p.min > 0)}
+              color={def.color}
+              format={(v) => formatParam(p, v)}
+              onChange={(v) => actions.setParam(track.id, p.id, v)}
+            />
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Mix">
+        <div className="flex flex-wrap gap-3">
+          <Knob label="Volume" value={track.volume} min={0} max={1} defaultValue={0.8} format={formatPercent} onChange={(v) => actions.updateTrack(track.id, { volume: v })} />
+          <Knob label="Pan" value={track.pan} min={-1} max={1} defaultValue={0} bipolar format={formatPan} onChange={(v) => actions.updateTrack(track.id, { pan: v })} />
+          <Knob label="Reverb" value={track.reverb} min={0} max={1} defaultValue={0} format={formatPercent} onChange={(v) => actions.updateTrack(track.id, { reverb: v })} />
+          <Knob label="Delay" value={track.delay} min={0} max={1} defaultValue={0} format={formatPercent} onChange={(v) => actions.updateTrack(track.id, { delay: v })} />
+        </div>
+      </Section>
+
+      {def.polyphonic && (
+        <Section title="Chords">
+          <Segmented label="Chord mode" value={track.chord} options={CHORDS} onChange={(v) => actions.setChord(track.id, v)} />
+          <p className="mt-2 max-w-52 text-xs text-fg-subtle">Each note plays a chord built from the project key.</p>
+        </Section>
+      )}
+    </div>
+  );
+}

@@ -1,10 +1,12 @@
-import { ThemeProvider } from "@/components/ThemeProvider";
-import BeatMaker from "@/components/BeatMaker";
+import { StudioLoader } from '@/components/studio/StudioLoader';
 
 export default function Home() {
   return (
-    <ThemeProvider>
-      <BeatMaker />
-    </ThemeProvider>
+    <>
+      <StudioLoader />
+      <noscript>
+        <p style={{ padding: 24, fontFamily: 'system-ui' }}>LofiLoop is an in-browser music studio and needs JavaScript to run.</p>
+      </noscript>
+    </>
   );
 }
