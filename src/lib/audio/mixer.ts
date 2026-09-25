@@ -11,6 +11,7 @@
  *   bus trim -> drive -> crush -> wow/flutter -> tone (+ crackle) -> transitions (sweep, filter lane, fade, tape stop)
  *     -> glue (+ ambience) -> master -> limiter -> safety clipper
  */
+import { kWeightingFilters } from '@/lib/export/loudness';
 import { dbToGain, expMap } from '@/lib/utils/math';
 import type {
   AmbienceType,
@@ -266,18 +267,14 @@ export class Mixer {
       this.analyser.smoothingTimeConstant = 0.75;
       this.output.connect(this.analyser);
 
-      // ITU-R BS.1770 K-weighting approximated with two biquads.
-      const shelf = ctx.createBiquadFilter();
-      shelf.type = 'highshelf';
-      shelf.frequency.value = 1681;
-      shelf.gain.value = 4;
-      const hp = ctx.createBiquadFilter();
-      hp.type = 'highpass';
-      hp.frequency.value = 38;
-      hp.Q.value = 0.5;
+      // Exact ITU-R BS.1770 K-weighting (the same filters the export meter uses).
       this.loudnessAnalyser = ctx.createAnalyser();
       this.loudnessAnalyser.fftSize = 32768;
-      this.output.connect(shelf).connect(hp).connect(this.loudnessAnalyser);
+      let node: AudioNode = this.output;
+      for (const f of kWeightingFilters(ctx.sampleRate)) {
+        node = node.connect(ctx.createIIRFilter(Array.from(f.b), Array.from(f.a)));
+      }
+      node.connect(this.loudnessAnalyser);
     }
 
     for (const lfo of this.lfos) lfo.start(0);

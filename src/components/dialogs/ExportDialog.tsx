@@ -155,8 +155,8 @@ export function ExportDialog() {
         if (level === 'peak') pcm = normalize(pcm);
         else if (target !== undefined) {
           setStage('Mastering');
-          const { masterToTarget } = await import('@/lib/export/mastering');
-          const result = masterToTarget(pcm, { targetLufs: target, ceilingDbtp: -1 });
+          const { masterAsync } = await import('@/lib/export/masterAsync');
+          const result = await masterAsync(pcm, { targetLufs: target, ceilingDbtp: -1 });
           pcm = result.audio;
           report = `Mastered to ${result.after.lufs.toFixed(1)} LUFS, peaks at ${result.after.truePeak.toFixed(1)} dBTP`;
         }

@@ -93,7 +93,8 @@ export function crackleBuffer(ctx: BaseAudioContext): AudioBuffer {
 }
 
 /** Soft clipper: linear below `knee`, then a tanh shoulder that never exceeds `ceiling`. */
-export function safetyCurve(knee = 0.85, ceiling = 0.98): Float32Array<ArrayBuffer> {
+/** Ceiling sits below full scale: the 4× oversampling filter rings a little past it. */
+export function safetyCurve(knee = 0.82, ceiling = 0.94): Float32Array<ArrayBuffer> {
   const n = 4096;
   const curve = new Float32Array(n);
   const range = ceiling - knee;

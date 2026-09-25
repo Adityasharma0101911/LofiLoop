@@ -840,7 +840,8 @@ export function generateTrackSteps(
 /** Default mixer settings per instrument. */
 export const MIX: Record<InstrumentId, { volume: number; pan: number; reverb: number; delay: number }> = {
   kick: { volume: 0.88, pan: 0, reverb: 0.02, delay: 0 },
-  '808': { volume: 0.74, pan: 0, reverb: 0, delay: 0 },
+  // The 808's long sustained notes carry far more energy than a plucked bass line.
+  '808': { volume: 0.58, pan: 0, reverb: 0, delay: 0 },
   snare: { volume: 0.76, pan: 0.02, reverb: 0.14, delay: 0 },
   clap: { volume: 0.72, pan: -0.04, reverb: 0.18, delay: 0 },
   hat: { volume: 0.64, pan: 0.22, reverb: 0.05, delay: 0 },
@@ -857,9 +858,9 @@ export const MIX: Record<InstrumentId, { volume: number; pan: number; reverb: nu
   bass: { volume: 0.74, pan: 0, reverb: 0, delay: 0 },
   wurli: { volume: 0.66, pan: -0.1, reverb: 0.3, delay: 0.08 },
   guitar: { volume: 0.64, pan: 0.18, reverb: 0.26, delay: 0.12 },
-  strings: { volume: 0.56, pan: 0, reverb: 0.45, delay: 0.05 },
+  strings: { volume: 0.6, pan: 0, reverb: 0.45, delay: 0.05 },
   flute: { volume: 0.56, pan: 0.15, reverb: 0.35, delay: 0.25 },
-  vox: { volume: 0.52, pan: -0.08, reverb: 0.5, delay: 0.15 },
+  vox: { volume: 0.66, pan: -0.08, reverb: 0.5, delay: 0.15 },
   upright: { volume: 0.72, pan: 0, reverb: 0.06, delay: 0 },
   riser: { volume: 0.5, pan: 0, reverb: 0.35, delay: 0.2 },
   sampler: { volume: 0.7, pan: 0, reverb: 0.2, delay: 0 },

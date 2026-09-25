@@ -3,7 +3,7 @@
  * strumming, monophonic retriggering with glide, hi-hat style choke groups and
  * sample lookup. Used by both the live engine and the offline renderer.
  */
-import { INSTRUMENTS } from '@/lib/project/instruments';
+import { INSTRUMENTS, type InstrumentId } from '@/lib/project/instruments';
 import type { Project, Track } from '@/lib/project/types';
 import { VOICES, type SampleVoiceData, type Voice } from './instruments';
 import type { Mixer } from './mixer';
@@ -15,6 +15,22 @@ const warned = new Set<string>();
 interface HeldVoice {
   voice: Voice;
   note: number;
+}
+
+/**
+ * Params from old or hand-edited files can be missing or non-finite; voices
+ * expect every param in range, so fall back to the instrument's defaults.
+ */
+function safeParams(instrument: InstrumentId, params: Record<string, number>): Record<string, number> {
+  const def = INSTRUMENTS[instrument];
+  let clean: Record<string, number> | null = null;
+  for (const p of def.params) {
+    const v = params[p.id];
+    if (v === undefined || Number.isFinite(v)) continue;
+    clean ??= { ...params };
+    clean[p.id] = p.default;
+  }
+  return clean ?? params;
 }
 
 export class VoicePlayer {
@@ -76,6 +92,7 @@ export class VoicePlayer {
     const notes = def.mono ? event.notes.slice(0, 1) : event.notes;
     const chordScale = notes.length > 1 ? (1 / Math.sqrt(notes.length)) * 1.2 : 1;
     const strum = notes.length > 1 ? (track.params.strum ?? 0) : 0;
+    const params = safeParams(track.instrument, track.params);
     const voices: Voice[] = [];
     notes.forEach((note, i) => {
       const at = time + i * strum;
@@ -92,7 +109,7 @@ export class VoicePlayer {
             glideFrom,
             sample,
           },
-          track.params,
+          params,
         );
       } catch (error) {
         // A broken voice must never stall the scheduler or an export; skip the note.
